@@ -1,0 +1,50 @@
+[
+  {
+    "slug": "proteccion-solar-todos-los-dias",
+    "titulo": "Protección solar todos los días: por qué y cómo elegirla",
+    "etiqueta": "Cuidado de la piel",
+    "categoria": "cuidado-de-la-piel",
+    "resumen": "El paso que más acompaña a tu piel a largo plazo no es el más costoso: es el más constante.",
+    "lectura": "6 min de lectura",
+    "cuerpo": [
+      ["p", "La protección solar es el paso de la rutina que más se recomienda y el que más fácil se olvida. En Colombia la radiación es alta durante todo el año, incluso en días nublados o cerca de una ventana."],
+      ["h", "Elige según tu tipo de piel"],
+      ["p", "Si tu piel es mixta o grasa, busca texturas fluidas u oil free. Si es seca, una textura en crema suele resultar más cómoda. Las versiones con color ayudan a unificar el tono sin sumar otro paso."],
+      ["h", "La cantidad importa"],
+      ["p", "Aplica una capa generosa en rostro y cuello unos minutos antes de salir y reaplica cada dos o tres horas si estás al aire libre."],
+      ["p", "Si tienes una condición en la piel, consulta con un dermatólogo. Si quieres una recomendación de producto según tu rutina, escríbenos."]
+    ]
+  },
+  {
+    "slug": "habitos-de-calma",
+    "titulo": "Pequeños hábitos de calma para semanas ocupadas",
+    "etiqueta": "Equilibrio interno",
+    "categoria": "equilibrio-interno",
+    "resumen": "No hace falta una hora libre para cuidarte. A veces bastan cinco minutos bien elegidos.",
+    "lectura": "5 min de lectura",
+    "cuerpo": [
+      ["p", "Cuando la semana se llena, lo primero que sacrificamos es el tiempo para nosotras. Por eso funcionan mejor los hábitos pequeños y fáciles de repetir que los planes grandes que nunca empiezan."],
+      ["h", "Algunas ideas"],
+      ["p", "Tomar el primer café o infusión sin pantalla, hacer tres respiraciones lentas antes de abrir el correo, caminar diez minutos después de almorzar o preparar la habitación para dormir con luz baja."],
+      ["p", "Elige uno solo y repítelo durante una semana. Cuando se vuelva automático, suma otro. El equilibrio se construye en lo cotidiano."]
+    ]
+  },
+  {
+    "slug": "como-elegir-tu-primer-juguete",
+    "titulo": "Cómo elegir tu primer juguete: guía sin prejuicios",
+    "etiqueta": "Intimidad consciente",
+    "categoria": "bienestar-intimo",
+    "resumen": "Tres preguntas sencillas para dar el primer paso con confianza y a tu ritmo.",
+    "lectura": "7 min de lectura",
+    "cuerpo": [
+      ["p", "Explorar tu intimidad también es autocuidado. No hay una forma correcta de empezar, y está bien tomarse el tiempo de conocer qué te genera curiosidad."],
+      ["h", "1. ¿Para quién es?"],
+      ["p", "Piensa si lo quieres para ti, para compartir en pareja o para usar a distancia. Eso define si te conviene un control manual, remoto o por app."],
+      ["h", "2. ¿Qué tamaño e intensidad?"],
+      ["p", "Para empezar, los formatos compactos y con controles sencillos suelen ser más cómodos."],
+      ["h", "3. ¿De qué material?"],
+      ["p", "Prioriza silicona de grado médico y usa lubricantes a base de agua. Limpia el producto antes y después de cada uso y guárdalo en su bolsa o estuche."],
+      ["p", "Si tienes dudas, escríbenos. La conversación es confidencial y sin juicios, y tu pedido llega en empaque discreto."]
+    ]
+  }
+]

@@ -1,0 +1,16 @@
+{
+  "name": "essenza-web",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Sitio estático de ESSENZA by Diana Caliz generado desde un Excel. Pedidos por WhatsApp.",
+  "type": "module",
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "dev": "node scripts/build.mjs && node scripts/serve.mjs",
+    "revisar": "node scripts/revisar-catalogo.mjs"
+  },
+  "engines": { "node": ">=20" },
+  "dependencies": {
+    "xlsx": "https://cdn.sheetjs.com/xlsx-0.20.3/xlsx-0.20.3.tgz"
+  }
+}
