@@ -35,8 +35,26 @@ if (fs.existsSync(IMG_DIR)) {
   }
 }
 
+const productos = sheet('Productos');
+
+// 2b. Carpeta de fotos para cada producto validado: catalogo/productos/<SKU>/ (con .gitkeep para que Git la guarde).
+// Solo en el computador de quien edita; en GitHub Actions (CI) no tiene sentido crear carpetas.
+const creadas = [];
+if (!process.env.CI) {
+  for (const r of productos) {
+    const sku = String(r.sku ?? '').trim();
+    if (String(r.estado ?? '').trim().toLowerCase() !== 'validado' || !sku) continue;
+    if (!/^[\w.-]+$/.test(sku)) { console.warn(`! SKU "${sku}" tiene caracteres no válidos para una carpeta; no se creó.`); continue; }
+    const dir = path.join(IMG_DIR, sku);
+    if (fs.existsSync(dir)) continue;
+    fs.mkdirSync(dir, { recursive: true });
+    fs.writeFileSync(path.join(dir, '.gitkeep'), '');
+    creadas.push(sku);
+  }
+}
+
 const data = normalize({
-  productos: sheet('Productos'), categorias: sheet('Categorias'), marcas: sheet('Marcas'), config: sheet('Config'), imagenes,
+  productos, categorias: sheet('Categorias'), marcas: sheet('Marcas'), config: sheet('Config'), imagenes,
 });
 
 // 3. Contenido extra
@@ -73,6 +91,7 @@ console.log(`\nESSENZA · sitio generado en ${((Date.now() - t0) / 1000).toFixed
 console.log(`  ✓ ${data.products.length} productos publicados · ${data.skipped} sin publicar (borrador/pendiente/incompletos)`);
 console.log(`  ✓ ${Object.keys(pages).length} páginas · ${data.cats.length} categorías · ${data.brands.length} marcas · ${blog.length} artículos`);
 if (!assets.some(a => a.startsWith('og.'))) missing.push('og');
+if (creadas.length) console.log(`  ✓ ${creadas.length} carpeta(s) nuevas para fotos en catalogo/productos/: ${creadas.length > 8 ? creadas.slice(0, 8).join(', ') + '…' : creadas.join(', ')}`);
 if (data.warnings.length) { console.log(`\n  Revisar (${data.warnings.length}):`); data.warnings.forEach(w => console.log('  ! ' + w)); }
 if (missing.length) console.log(`\n  Fotos del sitio que faltan en static/img/ (se muestra el monograma): ${missing.join(', ')}`);
 if (pendientes.length) console.log(`\n  Textos legales pendientes (página sin indexar en Google):\n${pendientes.map(p => '  · ' + p).join('\n')}`);

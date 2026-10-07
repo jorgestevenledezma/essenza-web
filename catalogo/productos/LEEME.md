@@ -1,6 +1,7 @@
 # Imágenes de productos
 
 Cada producto tiene su carpeta con el nombre exacto del SKU (columna "sku" del Excel).
+Las carpetas de los productos en estado "validado" se crean solas al correr npm run build o npm run dev.
 
 productos/
   ESZ-INT-001/

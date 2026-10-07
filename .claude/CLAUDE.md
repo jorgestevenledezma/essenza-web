@@ -18,6 +18,7 @@ static/                           ← CSS, JS del carrito/filtros/quiz, favicon,
 contenido/blog.json               ← artículos: [{slug,titulo,etiqueta,categoria,resumen,lectura,cuerpo:[["p"|"h",texto]],fecha?,autor?}]
 src/render.mjs                    ← normalize() valida el Excel; buildSite() genera HTML, JSON-LD y llms.txt
 scripts/build.mjs                 ← lee Excel + fotos → dist/ (HTML, sitemap.xml, robots.txt, llms.txt, CNAME)
+                                    (fuera de CI crea catalogo/productos/<SKU>/.gitkeep para cada SKU validado)
 scripts/revisar-catalogo.mjs      ← `npm run revisar`: valida el Excel y lo compara con el último commit
 scripts/serve.mjs                 ← `npm run dev`: build + servidor en http://localhost:4321
 .github/workflows/deploy.yml      ← push a main → build → GitHub Pages
