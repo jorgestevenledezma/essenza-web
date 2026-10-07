@@ -85,8 +85,9 @@ for (const r of nuevo.productos) {
     (slugsVistos[slug] ||= []).push(str(r.sku));
     if (str(r.descripcion_corta).length > 160) avisos.push(`${id}: descripcion_corta de ${str(r.descripcion_corta).length} caracteres; se usa como meta description, ideal ≤155.`);
   }
-  if (str(r.notas_internas)) avisos.push(`${id}: tiene notas_internas. El Excel se sube a GitHub; si el repositorio es público cualquiera puede leerlas.`);
 }
+const conNotas = nuevo.productos.filter(r => str(r.notas_internas)).length;
+if (conNotas) avisos.push(`${conNotas} producto(s) tienen notas_internas. El Excel se sube a GitHub; si el repositorio es público cualquiera puede leerlas (no pongas costos, proveedores ni datos personales).`);
 for (const [slug, s] of Object.entries(slugsVistos)) if (s.length > 1) avisos.push(`Slug repetido "${slug}" en ${s.join(', ')}; el build le agrega el SKU al segundo.`);
 
 // Config
@@ -134,7 +135,8 @@ else {
     n++;
     const det = dif.map(c => (['estado', 'precio', 'precio_promocional', 'disponibilidad', 'categoria', 'marca', 'slug'].includes(c) ? `${c}: "${str(o[c])}" → "${str(r[c])}"` : c));
     item(`${sku}: ${det.join('; ')}`);
-    if (dif.includes('slug') && str(o.estado) === 'validado') item(`  ⚠ ${sku} cambió de slug: la URL anterior dejará de existir (enlaces compartidos y Google).`);
+    const slugDe = x => str(x.slug) || slugify(`${x.nombre} ${x.marca}`);
+    if (slugDe(o) !== slugDe(r) && str(o.estado) === 'validado') item(`  ⚠ ${sku} cambia de URL: /producto/${slugDe(o)}/ → /producto/${slugDe(r)}/ (los enlaces ya compartidos dejarán de funcionar).`);
   }
   for (const h of ['categorias', 'marcas', 'config']) if (JSON.stringify(viejo[h].map(({ _fila, ...x }) => x)) !== JSON.stringify(nuevo[h].map(({ _fila, ...x }) => x))) { item(`Cambió la hoja ${h[0].toUpperCase() + h.slice(1)}`); n++; }
   if (!n) item('Sin cambios.');
