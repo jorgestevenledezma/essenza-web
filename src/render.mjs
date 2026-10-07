@@ -48,6 +48,7 @@ export function normalize(raw) {
   let skipped = 0;
   (raw.productos || []).forEach((r, i) => {
     const fila = r._fila || i + 2;
+    if (!str(r.sku) && !str(r.nombre)) return; // fila vacía del Excel
     if (str(r.estado).toLowerCase() !== 'validado') { skipped++; return; }
     const sku = str(r.sku), nombre = str(r.nombre), marca = str(r.marca), categoria = str(r.categoria), precio = Number(r.precio);
     const faltan = [];
