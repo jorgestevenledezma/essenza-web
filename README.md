@@ -14,7 +14,7 @@ scripts/build.mjs               ← lee el Excel y genera dist/
 ## Actualizar productos (el día a día)
 
 1. Edita `catalogo/catalogo.xlsx`. Solo se publican las filas con estado **validado**.
-2. Pon las fotos en `catalogo/productos/<SKU>/` con los nombres `1.webp`, `2.webp`… El nombre de la carpeta es el SKU exacto.
+2. Pon las fotos en `catalogo/productos/<SKU>/` con los nombres `1.webp`, `2.webp`… El nombre de la carpeta es el SKU exacto. No hace falta crearla: al correr `npm run build` o `npm run dev`, se crea sola para cada producto en estado **validado**.
 3. Sube los cambios a GitHub (con GitHub Desktop: *Commit* y luego *Push*). El sitio se regenera y publica solo en 1 o 2 minutos.
 
 Para revisar en tu computador antes de subir: `npm install` (solo la primera vez) y luego `npm run dev`. Se abre en http://localhost:4321

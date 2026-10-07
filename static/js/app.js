@@ -19,6 +19,19 @@
     toastTimer = setTimeout(() => toastEl.classList.remove('show'), 2600);
   };
 
+  // ---------- revelado al hacer scroll (una sola vez por elemento)
+  window.__rv = true;
+  const reveal = $$('[data-reveal],[data-stagger]');
+  if ('IntersectionObserver' in window && !reduced) {
+    const io = new IntersectionObserver(entries => entries.forEach(e => {
+      if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); }
+    }), { rootMargin: '0px 0px -10% 0px' });
+    reveal.forEach(el => {
+      if (el.matches('[data-stagger]')) [...el.children].forEach((c, i) => c.style.setProperty('--i', Math.min(i, 7)));
+      io.observe(el);
+    });
+  } else document.documentElement.classList.remove('rv');
+
   // ---------- menú móvil
   const menuBtn = $('.menu-btn'), nav = $('#nav');
   const setMenu = open => { if (!menuBtn || !nav) return; nav.classList.toggle('open', open); menuBtn.setAttribute('aria-expanded', open); menuBtn.setAttribute('aria-label', open ? 'Cerrar menú' : 'Abrir menú'); };
@@ -34,12 +47,31 @@
   const total = () => cart.reduce((s, i) => s + i.price * i.qty, 0);
   const count = () => cart.reduce((s, i) => s + i.qty, 0);
 
-  function add(item, quiet) {
+  const bump = () => $$('.cart-btn').forEach(b => { b.classList.remove('bump'); void b.offsetWidth; b.classList.add('bump'); });
+  // Un punto dorado sale del botón y aterriza en el carrito del encabezado (muestra a dónde fue el producto)
+  function fly(from) {
+    const to = $('.cart-btn');
+    if (reduced || !to || !from.animate) return false;
+    const a = from.getBoundingClientRect(), t = to.getBoundingClientRect();
+    if (t.bottom < 0) return false;
+    const dot = document.createElement('span'); dot.className = 'fly';
+    dot.style.left = `${a.left + a.width / 2 - 9}px`; dot.style.top = `${a.top + a.height / 2 - 9}px`;
+    body.appendChild(dot);
+    const dx = t.left + t.width / 2 - (a.left + a.width / 2), dy = t.top + t.height / 2 - (a.top + a.height / 2);
+    dot.animate([
+      { transform: 'translate(0,0) scale(1)', opacity: 1 },
+      { transform: `translate(${dx * 0.55}px,${dy * 0.55 - 60}px) scale(.85)`, opacity: 1, offset: 0.55 },
+      { transform: `translate(${dx}px,${dy}px) scale(.4)`, opacity: 0.7 },
+    ], { duration: 650, easing: 'cubic-bezier(0.77, 0, 0.175, 1)' }).onfinish = () => { dot.remove(); bump(); };
+    return true;
+  }
+
+  function add(item, quiet, from) {
     const id = item.sku + '|' + (item.variant || '');
     const found = cart.find(i => i.id === id);
     if (found) found.qty = Math.min(20, found.qty + item.qty); else cart.push({ ...item, id });
     save(); if (!quiet) toast(`${item.name} se agregó al carrito`); live('Producto agregado al carrito');
-    $$('.cart-btn').forEach(b => { b.classList.remove('bump'); void b.offsetWidth; b.classList.add('bump'); });
+    if (!(from && fly(from))) bump();
   }
 
   function itemsHTML() {
@@ -118,7 +150,7 @@
     add({
       sku: btn.dataset.sku, name: btn.dataset.name, price: Number(btn.dataset.price), url: btn.dataset.url, qty,
       variant: sel ? `${sel.dataset.label}: ${sel.value}` : '', img: img.replace(BASE, '').replace(/^(\.\.\/)+/, ''),
-    }, !scope); // desde una tarjeta se abre el carrito lateral, que ya confirma la acción
+    }, !scope, scope ? btn : null); // desde una tarjeta se abre el carrito lateral, que ya confirma la acción
     if (!scope) openDrawer();
   });
 

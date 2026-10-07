@@ -142,7 +142,7 @@ export function buildSite(data, opts = {}) {
     const f = [`cat:${p.cat.slug}`, `marca:${p.brand.slug}`, ...p.atributos.flatMap(a => a.values.map(v => `${a.key}:${v}`))];
     const badges = [p.nuevo && 'Novedad', p.promo && 'Oferta', p.agotado && 'Agotado'].filter(Boolean);
     return `<article class="card" data-name="${esc(searchKey(p))}" data-price="${p.final}" data-order="${p.order}" data-new="${p.nuevo ? 1 : 0}" data-f="${esc(JSON.stringify(f))}">
-<a class="media card-media" href="${b}producto/${p.slug}/" tabindex="-1" aria-hidden="true">${p.imagenes[0] ? `<img src="${b}${p.imagenes[0]}" alt="" loading="lazy" decoding="async" width="800" height="1000">` : ph(p.alt).replace('role="img" ', '')}${badges.length ? `<span class="badges">${badges.map(t => `<span class="badge">${t}</span>`).join('')}</span>` : ''}</a>
+<a class="media card-media" href="${b}producto/${p.slug}/" tabindex="-1" aria-hidden="true" style="view-transition-name:p-${p.slug}">${p.imagenes[0] ? `<img src="${b}${p.imagenes[0]}" alt="" loading="lazy" decoding="async" width="800" height="1000">` : ph(p.alt).replace('role="img" ', '')}${badges.length ? `<span class="badges">${badges.map(t => `<span class="badge">${t}</span>`).join('')}</span>` : ''}</a>
 <div class="card-body"><p class="meta">${esc(p.marca)}</p><h3 class="card-title"><a href="${b}producto/${p.slug}/">${esc(p.nombre)}</a></h3><p class="card-desc">${esc(p.corta)}</p><p class="price">${priceHTML(p)}</p>${addBtn(p, b, 'btn btn-sm btn-block')}</div>
 </article>`;
   };
@@ -203,6 +203,7 @@ ${og ? `<meta property="og:image" content="${esc(dominio + '/' + og)}">\n<meta p
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="${b}css/styles.css">
+<script>document.documentElement.classList.add('rv');setTimeout(function(){if(!window.__rv)document.documentElement.classList.remove('rv')},4000)</script>
 ${[p.jsonld].flat().filter(Boolean).map(j => `<script type="application/ld+json">${JSON.stringify(j).replace(/</g, '\\u003c')}</script>`).join('\n')}
 </head>
 <body data-base="${b}" data-wa="${esc(WA)}" data-wa-pedido="${esc(cfg.mensaje_pedido || 'Hola Diana, quiero hacer este pedido:')}">
@@ -271,12 +272,12 @@ ${p.body(b)}
     body: b => `
 <section class="hero"><div class="hero-text">
 <p class="eyebrow line">Autocuidado consciente</p>
-<h1 class="display">Tu piel. Tu bienestar. Tu esencia.</h1>
+<h1 class="display hero-title" aria-label="Tu piel. Tu bienestar. Tu esencia.">${'Tu piel. Tu bienestar. Tu esencia.'.split(' ').map((w, i) => `<span class="w" aria-hidden="true"><span style="--i:${i}">${w}</span></span>`).join(' ')}</h1>
 <p class="lead">Una selección cuidada de productos para tu piel, tu equilibrio y tu intimidad, acompañada de asesoría personalizada.</p>
 <div class="actions"><a class="btn" href="${b}tienda/">Descubrir ESSENZA</a><a class="btn btn-outline" href="${b}asesoria/">Recibir asesoría</a></div>
-</div><div class="media hero-media">${asset(b, 'hero', 'Productos ESSENZA sobre lino con luz natural', 'Foto hero 4:5 — static/img/hero.jpg', true)}</div></section>
+</div><div class="media hero-media media-reveal is-hero">${asset(b, 'hero', 'Productos ESSENZA sobre lino con luz natural', 'Foto hero 4:5 — static/img/hero.jpg', true)}</div></section>
 
-<section class="section white bordered"><div class="narrow center">
+<section class="section white bordered"><div class="narrow center" data-reveal>
 <p class="eyebrow">Nuestra filosofía</p>
 <h2 class="h2">Menos productos. Mejor seleccionados. Mejor explicados.</h2>
 <p class="muted">No buscamos tener miles de referencias. Cada producto que entra a ESSENZA pasa por un criterio de selección y llega acompañado de la información y la asesoría para elegirlo bien.</p>
@@ -285,10 +286,10 @@ ${p.body(b)}
 
 <section class="section"><div class="inner center">
 <p class="eyebrow">Tres universos, una sola casa</p><h2 class="h2">Elige por dónde empezar</h2>
-<div class="grid-3 left">${mainCats.slice(0, 3).map(c => `<a class="tile" href="${b}categoria/${c.slug}/"><div class="media tile-media">${asset(b, 'universo-' + c.slug, c.name, 'Foto ' + c.name)}</div><div class="tile-body"><h3 class="h3">${esc(c.name)}</h3><p class="muted">${esc(c.desc)}</p><span class="more">Explorar →</span></div></a>`).join('')}</div>
+<div class="grid-3 left" data-stagger>${mainCats.slice(0, 3).map(c => `<a class="tile" href="${b}categoria/${c.slug}/"><div class="media tile-media">${asset(b, 'universo-' + c.slug, c.name, 'Foto ' + c.name)}</div><div class="tile-body"><h3 class="h3">${esc(c.name)}</h3><p class="muted">${esc(c.desc)}</p><span class="more">Explorar →</span></div></a>`).join('')}</div>
 </div></section>
 
-<section class="split"><div class="media">${asset(b, 'diana', 'Diana Caliz', 'Retrato de Diana Caliz — static/img/diana.jpg')}</div>
+<section class="split"><div class="media media-reveal" data-reveal>${asset(b, 'diana', 'Diana Caliz', 'Retrato de Diana Caliz — static/img/diana.jpg')}</div>
 <div class="split-text"><p class="eyebrow">Asesoría personalizada</p><h2 class="h2">No tienes que elegir sola.</h2>
 <p class="muted">Estamos aquí para orientarte. Cuéntanos qué estás buscando y recibe una recomendación personalizada, cercana y confidencial.</p>
 <div class="actions"><a class="btn" href="${waHref(msgGeneral)}" target="_blank" rel="noopener">Hablar por WhatsApp</a><a class="btn btn-outline" href="${b}asesoria/">Cómo funciona</a></div></div></section>
@@ -296,7 +297,7 @@ ${p.body(b)}
 <section class="section sand"><div class="narrow center">
 <p class="eyebrow">Diagnóstico guiado</p><h2 class="h2">Encuentra tu ritual</h2>
 <p class="muted">Tres preguntas breves y te sugerimos por dónde empezar. No es un diagnóstico médico.</p>
-<div class="quiz" data-quiz>
+<div class="quiz" data-quiz data-reveal>
 <div data-step><p class="eyebrow">Pregunta 1 de 3</p><p class="quiz-q">¿Qué te gustaría cuidar hoy?</p><div class="chips">${mainCats.slice(0, 3).map(c => `<button type="button" class="chip" data-answer data-cat="${c.slug}" data-name="${esc(c.name)}">${esc(c.name)}</button>`).join('')}${kitCat ? `<button type="button" class="chip" data-answer data-cat="${kitCat.slug}" data-name="${esc(kitCat.name)}">Busco un regalo</button>` : ''}</div></div>
 <div data-step hidden><p class="eyebrow">Pregunta 2 de 3</p><p class="quiz-q">¿Cómo te describes frente a este tema?</p><div class="chips"><button type="button" class="chip" data-answer>Estoy empezando</button><button type="button" class="chip" data-answer>Ya tengo experiencia</button><button type="button" class="chip" data-answer>Busco algo específico</button></div></div>
 <div data-step hidden><p class="eyebrow">Pregunta 3 de 3</p><p class="quiz-q">¿Para quién es?</p><div class="chips"><button type="button" class="chip" data-answer>Para mí</button><button type="button" class="chip" data-answer>Para compartir en pareja</button><button type="button" class="chip" data-answer>Para regalar</button></div></div>
@@ -304,25 +305,25 @@ ${p.body(b)}
 </div></div></section>
 
 ${destacados.length ? `<section class="section"><div class="inner">
-<div class="section-head"><div><h2 class="h2">Selección curada</h2><p class="muted">Pocos productos, elegidos con criterio.</p></div><a class="more" href="${b}tienda/">Ver la tienda →</a></div>
-<div class="grid-products four">${destacados.map(p => card(b, p)).join('')}</div></div></section>` : ''}
+<div class="section-head" data-reveal><div><h2 class="h2">Selección curada</h2><p class="muted">Pocos productos, elegidos con criterio.</p></div><a class="more" href="${b}tienda/">Ver la tienda →</a></div>
+<div class="grid-products four" data-stagger>${destacados.map(p => card(b, p)).join('')}</div></div></section>` : ''}
 
 ${kits.length ? `<section class="section white bordered"><div class="inner">
-<div class="section-head"><div><p class="eyebrow">Kits y rituales</p><h2 class="h2">Rituales para regalar(te)</h2></div><a class="more" href="${b}categoria/kits-y-rituales/">Ver todos →</a></div>
-<div class="grid-products four">${kits.map(p => card(b, p)).join('')}</div></div></section>` : ''}
+<div class="section-head" data-reveal><div><p class="eyebrow">Kits y rituales</p><h2 class="h2">Rituales para regalar(te)</h2></div><a class="more" href="${b}categoria/kits-y-rituales/">Ver todos →</a></div>
+<div class="grid-products four" data-stagger>${kits.map(p => card(b, p)).join('')}</div></div></section>` : ''}
 
-<section class="section dark"><div class="pillars">
+<section class="section dark"><div class="pillars" data-stagger>
 <div><h3>Selección responsable</h3><p>Cada producto pasa por una revisión de marca, materiales e información antes de publicarse.</p></div>
 <div><h3>Información clara</h3><p>Fichas con beneficios, modo de uso y precauciones, sin promesas médicas.</p></div>
 <div><h3>Privacidad primero</h3><p>Empaque discreto y conversaciones confidenciales en cada pedido.</p></div>
 <div><h3>Acompañamiento</h3><p>Asesoría humana antes y después de tu compra.</p></div>
 </div></section>
 
-${brands.some(m => products.some(p => p.brand === m)) ? `<section class="section-sm bordered"><div class="brands"><span class="eyebrow">Marcas</span>${brands.filter(m => products.some(p => p.brand === m)).map(m => `<a href="${b}marca/${m.slug}/">${esc(m.name)}</a>`).join('')}</div></section>` : ''}
+${brands.some(m => products.some(p => p.brand === m)) ? `<section class="section-sm bordered"><div class="brands" data-reveal><span class="eyebrow">Marcas</span>${brands.filter(m => products.some(p => p.brand === m)).map(m => `<a href="${b}marca/${m.slug}/">${esc(m.name)}</a>`).join('')}</div></section>` : ''}
 
 ${blog.length ? `<section class="section"><div class="inner">
-<div class="section-head"><h2 class="h2">Aprender a cuidarte</h2><a class="more" href="${b}blog/">Ver el blog →</a></div>
-<div class="grid-3">${blog.slice(0, 3).map(a => postCard(b, a)).join('')}</div></div></section>` : ''}
+<div class="section-head" data-reveal><h2 class="h2">Aprender a cuidarte</h2><a class="more" href="${b}blog/">Ver el blog →</a></div>
+<div class="grid-3" data-stagger>${blog.slice(0, 3).map(a => postCard(b, a)).join('')}</div></div></section>` : ''}
 
 ${has(cfg.newsletter_action) ? `<section class="section sand"><div class="narrow center">
 <h2 class="h2">Un espacio para cuidarte mejor</h2><p class="muted">Una carta al mes con rutinas, hábitos y novedades. Puedes salir cuando quieras.</p>
@@ -356,7 +357,7 @@ ${has(cfg.newsletter_action) ? `<section class="section sand"><div class="narrow
       desc: c.desc || `${c.name} seleccionados por Diana Caliz, con asesoría personalizada.`,
       body: b => `<section class="page-head">${crumbs(b, [['Tienda', 'tienda/'], [c.name]])}<h1 class="h1">${esc(c.name)}</h1>${c.desc ? `<p class="muted">${esc(c.desc)}</p>` : ''}
 <div class="chips-row"><span class="pill">Empaque discreto</span><span class="pill">Asesoría confidencial</span>${c.slug === 'bienestar-intimo' ? '<span class="pill">Sin prejuicios</span>' : ''}</div></section>
-${g ? `<section class="guide-wrap"><h2 class="h3">${g[0]}</h2><div class="guide">${g[1].map(([t, d]) => `<div><h3>${t}</h3><p>${d}</p></div>`).join('')}</div><p class="meta">${g[2]}</p></section>` : ''}
+${g ? `<section class="guide-wrap"><h2 class="h3">${g[0]}</h2><div class="guide" data-stagger>${g[1].map(([t, d]) => `<div><h3>${t}</h3><p>${d}</p></div>`).join('')}</div><p class="meta">${g[2]}</p></section>` : ''}
 ${listing(b, ps, { showBrand: true })}`,
     });
   }
@@ -366,7 +367,7 @@ ${listing(b, ps, { showBrand: true })}`,
     title: 'Marcas · ESSENZA by Diana Caliz', active: 'marcas',
     desc: 'Las marcas que seleccionamos por sus materiales, su información verificable y su coherencia con el autocuidado consciente.',
     body: b => `<section class="page-head center">${crumbs(b, [['Marcas']])}<p class="eyebrow">Selección responsable</p><h1 class="h1">Las marcas que elegimos</h1><p class="muted mx">Trabajamos con marcas que cumplen nuestros criterios: materiales seguros, información verificable y coherencia con una experiencia de autocuidado consciente.</p></section>
-<section class="inner pad-x pad-b"><div class="grid-2">${brands.map(m => { const n = products.filter(p => p.brand === m).length; return `<a class="brand-card" href="${b}marca/${m.slug}/"><div class="brand-top"><h2 class="h3">${esc(m.name)}</h2>${m.universo ? `<span class="badge">${esc(m.universo)}</span>` : ''}</div>${m.desc ? `<p class="muted">${esc(m.desc)}</p>` : ''}<span class="more">${n ? `Ver ${n} producto${n > 1 ? 's' : ''} →` : 'Próximamente'}</span></a>`; }).join('')}</div></section>`,
+<section class="inner pad-x pad-b"><div class="grid-2" data-stagger>${brands.map(m => { const n = products.filter(p => p.brand === m).length; return `<a class="brand-card" href="${b}marca/${m.slug}/"><div class="brand-top"><h2 class="h3">${esc(m.name)}</h2>${m.universo ? `<span class="badge">${esc(m.universo)}</span>` : ''}</div>${m.desc ? `<p class="muted">${esc(m.desc)}</p>` : ''}<span class="more">${n ? `Ver ${n} producto${n > 1 ? 's' : ''} →` : 'Próximamente'}</span></a>`; }).join('')}</div></section>`,
   });
   for (const m of brands) {
     put(`marca/${m.slug}/index.html`, {
@@ -410,7 +411,7 @@ ${listing(b, ps, { showBrand: true })}`,
         ].filter(x => x[1]);
         return `<div class="page-head">${crumbs(b, [['Tienda', 'tienda/'], [p.cat.name, `categoria/${p.cat.slug}/`], [p.nombre]])}</div>
 <section class="product">
-<div class="gallery"><div class="media main-img">${p.imagenes[0] ? `<img src="${b}${p.imagenes[0]}" alt="${esc(p.alt)}" data-main width="1200" height="1500" fetchpriority="high">` : ph(p.alt)}</div>
+<div class="gallery"><div class="media main-img" style="view-transition-name:p-${p.slug}">${p.imagenes[0] ? `<img src="${b}${p.imagenes[0]}" alt="${esc(p.alt)}" data-main width="1200" height="1500" fetchpriority="high">` : ph(p.alt)}</div>
 ${p.imagenes.length > 1 ? `<div class="thumbs">${p.imagenes.map((src, i) => `<button type="button" data-thumb="${b}${src}" aria-label="Ver imagen ${i + 1}" aria-current="${i === 0}"><img src="${b}${src}" alt="" loading="lazy"></button>`).join('')}</div>` : ''}</div>
 <div class="info" data-product>
 <p class="meta"><a href="${b}marca/${p.brand.slug}/">${esc(p.marca)}</a></p>
@@ -425,7 +426,7 @@ ${p.adultos ? `<p class="notice"><strong>+18</strong> ${esc(cfg.aviso_adultos ||
 <ul class="trust"><li>Empaque 100% discreto</li><li>Asesoría personalizada y confidencial</li><li>Pedido y pago coordinados por WhatsApp</li></ul>
 </div></section>
 <section class="details">${acc.map(([t, c], i) => `<details${i < 2 ? ' open' : ''}><summary>${t}</summary><div class="content">${c}</div></details>`).join('')}</section>
-${rel.length ? `<section class="related"><h2 class="h2">También te puede interesar</h2><div class="grid-products four">${rel.map(x => card(b, x)).join('')}</div></section>` : ''}`;
+${rel.length ? `<section class="related"><h2 class="h2">También te puede interesar</h2><div class="grid-products four" data-stagger>${rel.map(x => card(b, x)).join('')}</div></section>` : ''}`;
       },
     });
   }
@@ -460,7 +461,7 @@ ${rel.length ? `<section class="related"><h2 class="h2">También te puede intere
 <p class="muted">Estamos aquí para orientarte. Cuéntanos qué estás buscando (una rutina para tu piel, un hábito de bienestar o un paso en tu intimidad) y recibe una recomendación personalizada, cercana y confidencial.</p>
 <ul class="trust row"><li>Conversación confidencial</li><li>Sin juicios</li><li>Sin compromiso de compra</li></ul></div></section>
 <section class="inner pad-x section-y two-col">
-<div><h2 class="h2">Cómo funciona</h2><div class="steps">
+<div><h2 class="h2">Cómo funciona</h2><div class="steps" data-stagger>
 <div class="step"><b>1</b><p>Nos cuentas qué buscas y para qué momento: piel, equilibrio interno o intimidad.</p></div>
 <div class="step"><b>2</b><p>Te hacemos pocas preguntas para entender tu caso, con total confidencialidad.</p></div>
 <div class="step"><b>3</b><p>Recibes una recomendación con el porqué de cada elección.</p></div></div>
@@ -480,10 +481,10 @@ ${rel.length ? `<section class="related"><h2 class="h2">También te puede intere
     desc: 'ESSENZA une el cuidado de la piel, el equilibrio interno y el bienestar íntimo en una sola conversación, con productos seleccionados y asesoría personalizada.',
     body: b => `<section class="page-head center narrow">${crumbs(b, [['Nosotros']])}<p class="eyebrow">Nuestra historia</p><h1 class="h1">El bienestar no se divide en categorías.</h1>
 <p class="muted mx">ESSENZA nace de una convicción: cuidar la piel, el cuerpo y la intimidad son parte de una misma conversación. Una conversación que merece información clara, productos seguros y cero prejuicios.</p></section>
-<section class="split"><div class="media">${asset(b, 'diana-nosotros', 'Diana Caliz', 'Retrato de Diana Caliz — static/img/diana-nosotros.jpg')}</div>
+<section class="split"><div class="media media-reveal" data-reveal>${asset(b, 'diana-nosotros', 'Diana Caliz', 'Retrato de Diana Caliz — static/img/diana-nosotros.jpg')}</div>
 <div class="split-text"><h2 class="h2">Diana Caliz</h2><p class="muted">Detrás de cada recomendación hay una persona real. Diana acompaña a cada cliente con cercanía y confidencialidad: escucha primero y recomienda después.</p>
 <blockquote class="mision left">“${MISION}”</blockquote><a class="btn" href="${b}asesoria/">Conocer la asesoría</a></div></section>
-<section class="section"><div class="inner"><h2 class="h2 center">Lo que nos guía</h2><div class="grid-3 values">
+<section class="section"><div class="inner"><h2 class="h2 center">Lo que nos guía</h2><div class="grid-3 values" data-stagger>
 <div><h3 class="h3">Educación sin juicios</h3><p class="muted">Explicamos sin tecnicismos, sin alarmas y sin promesas médicas.</p></div>
 <div><h3 class="h3">Privacidad como principio</h3><p class="muted">Empaque discreto, conversaciones confidenciales y datos tratados con respeto.</p></div>
 <div><h3 class="h3">Selección responsable</h3><p class="muted">Menos productos, mejor seleccionados y mejor explicados.</p></div></div></div></section>
@@ -516,7 +517,7 @@ ${has(cfg.horario) ? `<div><dt>Horario de atención</dt><dd>${esc(cfg.horario)}<
     title: 'Blog · ESSENZA by Diana Caliz', active: 'blog',
     desc: 'Rutinas de piel, hábitos de equilibrio interno e intimidad consciente, explicados con calma.',
     body: b => `<section class="page-head center">${crumbs(b, [['Blog']])}<p class="eyebrow">El diario ESSENZA</p><h1 class="h1">Aprender a cuidarte</h1><p class="muted mx">Rutinas de piel, hábitos de equilibrio interno e intimidad consciente, explicados con calma y sin sensacionalismo.</p></section>
-<section class="inner pad-x pad-b"><div class="grid-3">${blog.map(a => postCard(b, a)).join('')}</div></section>`,
+<section class="inner pad-x pad-b"><div class="grid-3" data-stagger>${blog.map(a => postCard(b, a)).join('')}</div></section>`,
   });
   for (const a of blog) {
     const c = cats.find(x => x.slug === a.categoria);
@@ -534,7 +535,7 @@ ${has(cfg.horario) ? `<div><dt>Horario de atención</dt><dd>${esc(cfg.horario)}<
 <div class="narrow pad-x"><div class="media post-hero">${asset(b, 'blog-' + a.slug, a.titulo, 'Foto 16:9 — static/img/blog-' + a.slug + '.jpg')}</div></div>
 <div class="prose">${a.cuerpo.map(([t, x]) => (t === 'h' ? `<h2>${esc(x)}</h2>` : `<p>${esc(x)}</p>`)).join('')}
 <div class="cta-box"><p class="h3">¿Quieres una recomendación para ti?</p><p class="muted">Cuéntanos qué buscas y te orientamos de forma confidencial.</p><a class="btn" href="${waHref(msgGeneral)}" target="_blank" rel="noopener">Hablar por WhatsApp</a></div></div></article>
-${ps.length ? `<section class="related"><h2 class="h2">Productos relacionados</h2><div class="grid-products four">${ps.map(p => card(b, p)).join('')}</div></section>` : ''}`,
+${ps.length ? `<section class="related"><h2 class="h2">Productos relacionados</h2><div class="grid-products four" data-stagger>${ps.map(p => card(b, p)).join('')}</div></section>` : ''}`,
     });
   }
 
