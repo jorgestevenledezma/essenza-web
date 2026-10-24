@@ -8,6 +8,9 @@ const PEND = /pendiente de validaci/i;
 // Promesas médicas que no deben publicarse (ver hoja Instrucciones del Excel)
 const MEDICO = /\b(cura[rn]?|curativ[oa]s?|elimina[rn]?|garantiza(do|da|mos)?|quema grasa|adelgaza|trata(miento)? de enfermedad|milagros[oa])\b/i;
 const PUBLICOS = ['nombre', 'descripcion_corta', 'por_que_lo_recomendamos', 'para_quien', 'descripcion_completa', 'beneficios', 'caracteristicas', 'modo_uso', 'seo_title', 'meta_description'];
+// Cierre para descriptions cortas: se usa la frase más larga que quepa en 155 caracteres
+const DESC_EXTRA = [' Asesoría personalizada, empaque discreto y envíos a Colombia.', ' Asesoría personalizada y envíos a Colombia.', ' Envíos a Colombia.'];
+const FONTS = 'https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&family=Manrope:wght@400;500;600;700&display=swap';
 const str = v => (v == null ? '' : String(v).trim());
 const has = v => str(v) !== '' && !PEND.test(String(v));
 const list = v => (has(v) ? String(v).split('|').map(x => x.trim()).filter(x => x && !PEND.test(x)) : []);
@@ -177,8 +180,11 @@ ${filters.length ? `<aside class="filters" id="filtros" data-filters aria-label=
     const cur = k => (p.active === k ? ' aria-current="page"' : '');
     const og = p.og || (assets.find(a => a.startsWith('og.')) ? `img/${assets.find(a => a.startsWith('og.'))}` : '');
     const social = [['Instagram', cfg.instagram], ['Facebook', cfg.facebook], ['TikTok', cfg.tiktok]].filter(x => has(x[1]));
-    // Descripciones cortas (vienen del Excel) se completan para que Google no las reemplace por texto al azar
-    const desc = p.noindex || str(p.desc).length >= 110 ? str(p.desc) : `${str(p.desc).replace(/\.?$/, '.')} Asesoría personalizada, empaque discreto y envíos a Colombia.`.slice(0, 160);
+    // Description entre 120 y 155 caracteres: las cortas (vienen del Excel) se completan para que Google no las
+    // reemplace por texto al azar, y las largas se recortan en una palabra para que no queden cortadas en el resultado
+    const fit = s => (s.length <= 155 ? s : `${s.slice(0, 154).replace(/[\s,;:.]+\S*$/, '')}…`);
+    const base = str(p.desc).replace(/\.?$/, '.');
+    const desc = p.noindex ? str(p.desc) : fit(base.length >= 120 ? base : base + (DESC_EXTRA.find(x => (base + x).length <= 155) ?? ''));
     return `<!doctype html>
 <html lang="es-CO">
 <head>
@@ -187,6 +193,7 @@ ${filters.length ? `<aside class="filters" id="filtros" data-filters aria-label=
 <title>${esc(p.title)}</title>
 <meta name="description" content="${esc(desc)}">
 ${p.noindex ? '<meta name="robots" content="noindex, follow">' : `<link rel="canonical" href="${esc(url)}">`}
+${p.adult ? '<meta name="rating" content="adult">\n' : ''}
 <meta property="og:type" content="${p.ogType || 'website'}">
 <meta property="og:site_name" content="ESSENZA by Diana Caliz">
 <meta property="og:locale" content="es_CO">
@@ -201,7 +208,8 @@ ${og ? `<meta property="og:image" content="${esc(dominio + '/' + og)}">\n<meta p
 <meta name="theme-color" content="#F8F5EF">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="${FONTS}" rel="stylesheet" media="print" onload="this.media='all'">
+<noscript><link href="${FONTS}" rel="stylesheet"></noscript>
 <link rel="stylesheet" href="${b}css/styles.css">
 <script>document.documentElement.classList.add('rv');setTimeout(function(){if(!window.__rv)document.documentElement.classList.remove('rv')},4000)</script>
 ${[p.jsonld].flat().filter(Boolean).map(j => `<script type="application/ld+json">${JSON.stringify(j).replace(/</g, '\\u003c')}</script>`).join('\n')}
@@ -256,7 +264,7 @@ ${p.body(b)}
   const kits = products.filter(p => p.cat.slug === 'kits-y-rituales' && !destacados.includes(p)).slice(0, 4);
   const kitCat = cats.find(c => c.slug === 'kits-y-rituales');
   put('index.html', {
-    title: 'ESSENZA by Diana Caliz | Cuidado de la piel y bienestar íntimo',
+    title: 'ESSENZA by Diana Caliz | Piel, equilibrio e intimidad',
     desc: 'Una selección cuidada de productos para tu piel, tu equilibrio y tu intimidad, con asesoría personalizada y empaque discreto. Envíos a Colombia.',
     jsonld: [
       {
@@ -339,7 +347,7 @@ ${has(cfg.newsletter_action) ? `<section class="section sand"><div class="narrow
   // ------------------------------------------------ tienda y categorías
   put('tienda/index.html', {
     title: 'Tienda · ESSENZA by Diana Caliz', active: 'tienda',
-    desc: 'Cuidado de la piel, equilibrio interno, bienestar íntimo y kits seleccionados por Diana Caliz.',
+    desc: 'Toda la selección ESSENZA: cuidado de la piel, equilibrio interno, bienestar íntimo y kits elegidos por Diana Caliz. Pedidos por WhatsApp.',
     body: b => `<section class="page-head">${crumbs(b, [['Tienda']])}<h1 class="h1">Tienda</h1><p class="muted">Toda la selección ESSENZA en un solo lugar. Filtra por categoría, marca o necesidad.</p></section>${listing(b, products, { search: true, showCat: true, showBrand: true })}`,
   });
 
@@ -354,7 +362,8 @@ ${has(cfg.newsletter_action) ? `<section class="section sand"><div class="narrow
     put(`categoria/${c.slug}/index.html`, {
       title: `${c.name} · ESSENZA by Diana Caliz`, active: 'tienda', wa: msgCat(c),
       jsonld: bcLD([['Tienda', 'tienda/'], [c.name, `categoria/${c.slug}/`]]),
-      desc: c.desc || `${c.name} seleccionados por Diana Caliz, con asesoría personalizada.`,
+      desc: `${c.desc ? c.desc.replace(/\.?$/, '.') + ' ' : ''}${c.name}: ${ps.length} productos seleccionados por Diana Caliz.`,
+      adult: ps.length > 0 && ps.every(p => p.adultos),
       body: b => `<section class="page-head">${crumbs(b, [['Tienda', 'tienda/'], [c.name]])}<h1 class="h1">${esc(c.name)}</h1>${c.desc ? `<p class="muted">${esc(c.desc)}</p>` : ''}
 <div class="chips-row"><span class="pill">Empaque discreto</span><span class="pill">Asesoría confidencial</span>${c.slug === 'bienestar-intimo' ? '<span class="pill">Sin prejuicios</span>' : ''}</div></section>
 ${g ? `<section class="guide-wrap"><h2 class="h3">${g[0]}</h2><div class="guide" data-stagger>${g[1].map(([t, d]) => `<div><h3>${t}</h3><p>${d}</p></div>`).join('')}</div><p class="meta">${g[2]}</p></section>` : ''}
@@ -370,12 +379,16 @@ ${listing(b, ps, { showBrand: true })}`,
 <section class="inner pad-x pad-b"><div class="grid-2" data-stagger>${brands.map(m => { const n = products.filter(p => p.brand === m).length; return `<a class="brand-card" href="${b}marca/${m.slug}/"><div class="brand-top"><h2 class="h3">${esc(m.name)}</h2>${m.universo ? `<span class="badge">${esc(m.universo)}</span>` : ''}</div>${m.desc ? `<p class="muted">${esc(m.desc)}</p>` : ''}<span class="more">${n ? `Ver ${n} producto${n > 1 ? 's' : ''} →` : 'Próximamente'}</span></a>`; }).join('')}</div></section>`,
   });
   for (const m of brands) {
+    const ps = products.filter(p => p.brand === m);
+    const enCats = cats.filter(c => ps.some(p => p.cat === c)).map(c => c.name.toLowerCase());
     put(`marca/${m.slug}/index.html`, {
       title: `${m.name} · ESSENZA by Diana Caliz`, active: 'marcas',
       jsonld: bcLD([['Marcas', 'marcas/'], [m.name, `marca/${m.slug}/`]]),
-      // Marca sin productos publicados: página delgada, no se indexa hasta que tenga catálogo
-      noindex: !products.some(p => p.brand === m),
-      desc: m.desc || `Productos ${m.name} seleccionados por ESSENZA.`,
+      // Marca con menos de 2 productos publicados: página delgada, no se indexa hasta que tenga más catálogo
+      noindex: ps.length < 2,
+      // Generada desde el catálogo (no desde la hoja Marcas) para que cada marca tenga una description única y verificable
+      desc: `${m.name} en ESSENZA: ${ps.length === 1 ? 'un producto' : `${ps.length} productos`} de ${enCats.join(' y ') || 'nuestra selección'} ${ps.length === 1 ? 'elegido' : 'elegidos'} por Diana Caliz.`,
+      adult: ps.length > 0 && ps.every(p => p.adultos),
       body: b => `<section class="page-head">${crumbs(b, [['Marcas', 'marcas/'], [m.name]])}<h1 class="h1">${esc(m.name)}</h1>${m.desc ? `<p class="muted">${esc(m.desc)}</p>` : ''}</section>${listing(b, products.filter(p => p.brand === m), { showCat: true })}`,
     });
   }
@@ -388,7 +401,7 @@ ${listing(b, ps, { showBrand: true })}`,
     const specs = [['Presentación', p.presentacion], ['Dimensiones', p.dimensiones], ['Peso', p.peso], ...p.atributos.map(a => [a.label, a.values.join(', ')])].filter(r => r[1]);
     put(`producto/${p.slug}/index.html`, {
       title: p.seoTitle || (p.marca === 'ESSENZA' ? `${p.nombre} | ESSENZA` : `${p.nombre} · ${p.marca} | ESSENZA`), active: 'tienda', wa: waMsg, ogType: 'product',
-      desc: p.metaDesc || p.corta, og: p.imagenes[0] || '', ogAlt: p.alt,
+      desc: p.metaDesc || p.corta, og: p.imagenes[0] || '', ogAlt: p.alt, adult: p.adultos,
       jsonld: [{
         '@context': 'https://schema.org', '@type': 'Product', name: p.nombre, sku: p.sku, description: p.corta, category: p.cat.name,
         brand: { '@type': 'Brand', name: p.marca }, ...(p.imagenes.length && { image: p.imagenes.map(i => `${dominio}/${i}`) }),
@@ -455,7 +468,7 @@ ${rel.length ? `<section class="related"><h2 class="h2">También te puede intere
   const catOptions = [...mainCats.map(c => c.name), 'Un regalo', 'Prefiero contarlo por chat'];
   put('asesoria/index.html', {
     title: 'Asesoría personalizada · ESSENZA by Diana Caliz', active: 'asesoria',
-    desc: 'Cuéntanos qué estás buscando y recibe una recomendación personalizada, cercana y confidencial.',
+    desc: 'Cuéntanos qué estás buscando y recibe por WhatsApp una recomendación personalizada, cercana y confidencial para tu piel, tu equilibrio o tu intimidad.',
     body: b => `<section class="split hero-split"><div class="media">${asset(b, 'diana', 'Diana Caliz', 'Retrato de Diana Caliz — static/img/diana.jpg', true)}</div>
 <div class="split-text"><p class="eyebrow">Asesoría personalizada</p><h1 class="h1">No tienes que elegir sola.</h1>
 <p class="muted">Estamos aquí para orientarte. Cuéntanos qué estás buscando (una rutina para tu piel, un hábito de bienestar o un paso en tu intimidad) y recibe una recomendación personalizada, cercana y confidencial.</p>
@@ -478,7 +491,7 @@ ${rel.length ? `<section class="related"><h2 class="h2">También te puede intere
   // ------------------------------------------------ nosotros
   put('nosotros/index.html', {
     title: 'Nosotros · ESSENZA by Diana Caliz', active: 'nosotros',
-    desc: 'ESSENZA une el cuidado de la piel, el equilibrio interno y el bienestar íntimo en una sola conversación, con productos seleccionados y asesoría personalizada.',
+    desc: 'ESSENZA une cuidado de la piel, equilibrio interno y bienestar íntimo en una sola conversación, con productos seleccionados y asesoría personalizada.',
     body: b => `<section class="page-head center narrow">${crumbs(b, [['Nosotros']])}<p class="eyebrow">Nuestra historia</p><h1 class="h1">El bienestar no se divide en categorías.</h1>
 <p class="muted mx">ESSENZA nace de una convicción: cuidar la piel, el cuerpo y la intimidad son parte de una misma conversación. Una conversación que merece información clara, productos seguros y cero prejuicios.</p></section>
 <section class="split"><div class="media media-reveal" data-reveal>${asset(b, 'diana-nosotros', 'Diana Caliz', 'Retrato de Diana Caliz — static/img/diana-nosotros.jpg')}</div>
@@ -577,7 +590,7 @@ ${ps.length ? `<section class="related"><h2 class="h2">Productos relacionados</h
     ['¿Puedo pedir una recomendación antes de comprar?', 'Claro. Escríbenos por WhatsApp o usa el formulario de asesoría y te orientamos.'],
   ];
   put('preguntas-frecuentes/index.html', {
-    title: 'Preguntas frecuentes · ESSENZA by Diana Caliz', desc: 'Pedidos, envíos, empaque discreto, pagos y asesoría.',
+    title: 'Preguntas frecuentes · ESSENZA by Diana Caliz', desc: 'Resolvemos tus dudas sobre cómo hacer un pedido por WhatsApp, envíos a Colombia, empaque discreto, medios de pago y asesoría personalizada.',
     jsonld: { '@context': 'https://schema.org', '@type': 'FAQPage', mainEntity: FAQ.map(([q, a]) => ({ '@type': 'Question', name: q, acceptedAnswer: { '@type': 'Answer', text: a } })) },
     body: b => `<section class="page-head narrow">${crumbs(b, [['Preguntas frecuentes']])}<h1 class="h1">Preguntas frecuentes</h1></section>
 <section class="details">${FAQ.map(([q, a], i) => `<details${i === 0 ? ' open' : ''}><summary>${q}</summary><div class="content"><p>${a}</p></div></details>`).join('')}</section>`,
@@ -597,6 +610,8 @@ ${ps.length ? `<section class="related"><h2 class="h2">Productos relacionados</h
 function llmsTxt({ cfg, cats, brands, products, blog, urlOf, noindex }) {
   const u = p => urlOf(p);
   const linea = (t, url, d) => `- [${t}](${url})${d ? `: ${d}` : ''}`;
+  // Los productos +18 no se exponen a buscadores con IA: solo se listan los de uso general y sus marcas
+  const general = products.filter(p => !p.adultos);
   const precio = p => `${fmt(p.final)} COP${p.agotado ? ', agotado por ahora' : p.disponibilidad === 'por encargo' ? ', por encargo' : ''}`;
   const out = [
     '# ESSENZA by Diana Caliz',
@@ -605,7 +620,7 @@ function llmsTxt({ cfg, cats, brands, products, blog, urlOf, noindex }) {
     '',
     '- Idioma: español (Colombia). Precios en pesos colombianos (COP).',
     '- Cómo comprar: agregar productos al carrito del sitio y enviar el pedido por WhatsApp; allí se confirman disponibilidad, costo de envío y forma de pago.',
-    '- Los productos de bienestar íntimo son solo para personas mayores de 18 años.',
+    '- Los productos de bienestar íntimo son solo para personas mayores de 18 años y no se listan aquí; se pueden consultar en la categoría Bienestar íntimo del sitio.',
     '- La información es orientativa, no hace promesas médicas y no reemplaza la consulta con un profesional de la salud.',
     ...(has(cfg.email) ? [`- Correo: ${cfg.email}`] : []),
     ...(has(cfg.horario) ? [`- Horario de atención: ${cfg.horario}`] : []),
@@ -614,10 +629,10 @@ function llmsTxt({ cfg, cats, brands, products, blog, urlOf, noindex }) {
     ...cats.map(c => linea(c.name, u(`categoria/${c.slug}/index.html`), c.desc)),
     '',
     '## Productos',
-    ...products.map(p => linea(`${p.nombre} · ${p.marca}`, u(`producto/${p.slug}/index.html`), `${p.corta} (${p.cat.name}; ${precio(p)})`)),
+    ...general.map(p => linea(`${p.nombre} · ${p.marca}`, u(`producto/${p.slug}/index.html`), `${p.corta} (${p.cat.name}; ${precio(p)})`)),
     '',
     '## Marcas',
-    ...brands.filter(m => products.some(p => p.brand === m)).map(m => linea(m.name, u(`marca/${m.slug}/index.html`), m.desc)),
+    ...brands.filter(m => general.some(p => p.brand === m)).map(m => linea(m.name, u(`marca/${m.slug}/index.html`), m.desc)),
     '',
     '## Ayuda',
     linea('Asesoría personalizada', u('asesoria/index.html'), 'cómo pedir una recomendación confidencial'),
