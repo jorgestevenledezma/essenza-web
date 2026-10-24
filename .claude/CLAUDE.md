@@ -54,7 +54,10 @@ no agregues React, Tailwind, Astro, etc. sin que lo pidan.
 Título, description y canonical por página; Open Graph (`og:locale es_CO`) y tarjeta de Twitter/X; JSON-LD de
 `OnlineStore` + `WebSite` (inicio), `Product` + `Offer` en COP (producto), `BreadcrumbList` (categoría, marca,
 producto, blog), `Article` (blog) y `FAQPage`; `noindex` en carrito, 404 y legales pendientes; `sitemap.xml`
-sin esas páginas; `llms.txt` para buscadores con IA, generado desde el Excel. Las imágenes `og.*`, `hero.*`, etc.
+sin esas páginas; `llms.txt` para buscadores con IA, generado desde el Excel (**sin productos +18** ni marcas que
+solo tengan productos +18). `<meta name="rating" content="adult">` en productos con `solo_adultos = sí` y en
+categorías/marcas donde todos lo son. Descriptions entre 120 y 155 caracteres (`layout()` completa o recorta);
+las de marca se generan desde el catálogo y las marcas con menos de 2 productos llevan `noindex`. Las imágenes `og.*`, `hero.*`, etc.
 van en `static/img/` (ver `static/img/LEEME.md`).
 
 ## Front (estado tras la revisión de octubre de 2026)
