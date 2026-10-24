@@ -10,6 +10,9 @@
   const waLink = msg => `https://wa.me/${WA}?text=${encodeURIComponent(msg)}`;
   const live = t => { const el = $('[data-live]'); if (el) { el.textContent = ''; setTimeout(() => (el.textContent = t), 30); } };
   const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  // Eventos de Google Analytics (gtag solo envía datos en el dominio publicado). Nunca se envían nombre ni ciudad
+  const track = (name, params) => { try { window.gtag?.('event', name, params); } catch {} };
+  const gaItem = i => ({ item_id: i.sku, item_name: i.name, item_variant: i.variant || undefined, price: i.price, quantity: i.qty });
   // Un solo aviso a la vez: si llega otro, reemplaza al anterior en lugar de amontonarse
   let toastEl = null, toastTimer = 0;
   const toast = t => {
@@ -70,6 +73,7 @@
     const id = item.sku + '|' + (item.variant || '');
     const found = cart.find(i => i.id === id);
     if (found) found.qty = Math.min(20, found.qty + item.qty); else cart.push({ ...item, id });
+    track('add_to_cart', { currency: 'COP', value: item.price * item.qty, items: [gaItem(item)] });
     save(); if (!quiet) toast(`${item.name} se agregó al carrito`); live('Producto agregado al carrito');
     if (!(from && fly(from))) bump();
   }
@@ -173,6 +177,7 @@
     err.hidden = true;
     const lines = cart.map(i => `• ${i.name}${i.variant ? ` (${i.variant})` : ''} x${i.qty}: ${fmt(i.price * i.qty)}`);
     const text = [body.dataset.waPedido, '', ...lines, '', `Total productos: ${fmt(total())} COP`, '', `Nombre: ${nombre}`, `Ciudad: ${ciudad}`, notas ? `Notas: ${notas}` : ''].filter((l, i, a) => l !== '' || a[i - 1] !== '').join('\n');
+    track('generate_lead', { lead_source: 'pedido_carrito', currency: 'COP', value: total(), items: cart.map(gaItem) });
     window.open(waLink(text), '_blank', 'noopener');
   });
 
@@ -183,8 +188,15 @@
     const req = $$('[required]', f).find(el => !el.value.trim());
     if (req) { req.focus(); req.setAttribute('aria-invalid', 'true'); return; }
     const parts = $$('[data-label]', f).filter(el => el.value.trim()).map(el => `${el.dataset.label}: ${el.value.trim()}`);
+    track('generate_lead', { lead_source: `formulario_${location.pathname.split('/').filter(Boolean).pop() || 'inicio'}` });
     window.open(waLink([f.dataset.prefix, '', ...parts].join('\n')), '_blank', 'noopener');
   }));
+
+  // ---------- clics a WhatsApp (botón flotante, "Consultar por WhatsApp", asesoría, quiz)
+  document.addEventListener('click', e => {
+    const a = e.target.closest('a[href^="https://wa.me/"]'); if (!a) return;
+    track('contacto_whatsapp', { ubicacion: a.classList.contains('wa') ? 'boton_flotante' : (a.textContent.trim().slice(0, 40) || 'enlace') });
+  });
 
   // ---------- diagnóstico guiado
   const quiz = $('[data-quiz]');

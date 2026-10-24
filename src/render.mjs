@@ -10,7 +10,9 @@ const MEDICO = /\b(cura[rn]?|curativ[oa]s?|elimina[rn]?|garantiza(do|da|mos)?|qu
 const PUBLICOS = ['nombre', 'descripcion_corta', 'por_que_lo_recomendamos', 'para_quien', 'descripcion_completa', 'beneficios', 'caracteristicas', 'modo_uso', 'seo_title', 'meta_description'];
 // Cierre para descriptions cortas: se usa la frase más larga que quepa en 155 caracteres
 const DESC_EXTRA = [' Asesoría personalizada, empaque discreto y envíos a Colombia.', ' Asesoría personalizada y envíos a Colombia.', ' Envíos a Colombia.'];
-const FONTS = 'https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&family=Manrope:wght@400;500;600;700&display=swap';
+// Google Analytics 4. Solo se carga en el dominio publicado, para que `npm run dev` no ensucie las estadísticas
+const GA_ID = 'G-FTGK818FD4';
+const FONTS ='https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&family=Manrope:wght@400;500;600;700&display=swap';
 const str = v => (v == null ? '' : String(v).trim());
 const has = v => str(v) !== '' && !PEND.test(String(v));
 const list = v => (has(v) ? String(v).split('|').map(x => x.trim()).filter(x => x && !PEND.test(x)) : []);
@@ -109,6 +111,8 @@ export function normalize(raw) {
 export function buildSite(data, opts = {}) {
   const { cfg, cats, brands, products } = data;
   const dominio = str(cfg.dominio).replace(/\/$/, '');
+  // Dominio sin "www." y con los puntos escapados, para la expresión regular que activa Google Analytics
+  const host = dominio.replace(/^https?:\/\/(www\.)?/, '').replace(/\./g, '\\.');
   const WA = str(cfg.whatsapp_numero).replace(/\D/g, '');
   const assets = opts.assets || [];
   const blog = opts.blog || [];
@@ -211,6 +215,7 @@ ${og ? `<meta property="og:image" content="${esc(dominio + '/' + og)}">\n<meta p
 <link href="${FONTS}" rel="stylesheet" media="print" onload="this.media='all'">
 <noscript><link href="${FONTS}" rel="stylesheet"></noscript>
 <link rel="stylesheet" href="${b}css/styles.css">
+<script>if(/(^|\\.)${esc(host)}$/.test(location.hostname)){var g=document.createElement('script');g.async=true;g.src='https://www.googletagmanager.com/gtag/js?id=${GA_ID}';document.head.appendChild(g)}window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments)}gtag('js',new Date());gtag('config','${GA_ID}');</script>
 <script>document.documentElement.classList.add('rv');setTimeout(function(){if(!window.__rv)document.documentElement.classList.remove('rv')},4000)</script>
 ${[p.jsonld].flat().filter(Boolean).map(j => `<script type="application/ld+json">${JSON.stringify(j).replace(/</g, '\\u003c')}</script>`).join('\n')}
 </head>
