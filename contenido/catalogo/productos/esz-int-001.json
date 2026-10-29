@@ -1,0 +1,50 @@
+{
+  "estado": "validado",
+  "sku": "ESZ-INT-001",
+  "nombre": "Lush 3",
+  "marca": "Lovense",
+  "categoria": "Bienestar íntimo",
+  "subcategoria": "Juguetes",
+  "slug": "lush-3-lovense",
+  "precio": 670000,
+  "disponibilidad": "disponible",
+  "descripcion_corta": "Masajeador interactivo silencioso y cómodo, con control desde la app a cualquier distancia.",
+  "por_que_lo_recomendamos": "Ideal para quien empieza con juguetes interactivos: es silencioso, cómodo y fácil de usar sola o en pareja.",
+  "para_quien": "Uso individual o en pareja, incluso a distancia. Nivel principiante a intermedio.",
+  "descripcion_completa": "Lush 3 combina un diseño ergonómico en silicona con conexión por app, para explorar a tu ritmo y con total discreción.",
+  "beneficios": [
+    "Control desde la app a cualquier distancia",
+    "Funcionamiento muy silencioso",
+    "Diseño cómodo que se adapta al cuerpo",
+    "Patrones personalizables"
+  ],
+  "caracteristicas": [
+    "Conexión Bluetooth",
+    "Recargable",
+    "Resistente al agua"
+  ],
+  "ingredientes_materiales": "Silicona de grado médico",
+  "modo_uso": "Carga completamente antes del primer uso. Descarga la app Lovense Remote, vincula el dispositivo y elige la intensidad.",
+  "precauciones": "Usa solo lubricantes a base de agua. Limpia antes y después de cada uso.",
+  "presentacion": "1 unidad",
+  "dimensiones": "pendiente de validación",
+  "peso": "pendiente de validación",
+  "atributos": [
+    "estimulacion:Punto G",
+    "uso:Individual,Pareja,Distancia",
+    "experiencia:Principiante",
+    "control:App",
+    "resistente_agua:Sí",
+    "carga:Recargable"
+  ],
+  "solo_adultos": true,
+  "destacado": true,
+  "nuevo": false,
+  "relacionados": [
+    "ESZ-KIT-001"
+  ],
+  "texto_alternativo": "Lush 3 de Lovense sobre tela de lino",
+  "seo_title": "Lush 3 · Lovense | ESSENZA",
+  "meta_description": "Masajeador interactivo silencioso y cómodo, con control desde la app a cualquier distancia. Envíos a Colombia en empaque 100% discreto.",
+  "notas_internas": "Confirmar dimensiones, peso y garantía con el proveedor. El portafolio indica batería de hasta 5 h; confirmar antes de publicar."
+}

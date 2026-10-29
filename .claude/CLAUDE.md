@@ -28,6 +28,14 @@ Comandos: `npm install` (una vez), `npm run build`, `npm run dev`, `npm run revi
 Sin framework, sin bundler y con una sola dependencia (`xlsx` de SheetJS desde su CDN). Mantenlo así:
 no agregues React, Tailwind, Astro, etc. sin que lo pidan.
 
+### Piloto de panel (Pages CMS, rama `piloto-pages-cms`)
+
+- `.pages.yml` configura el panel (https://app.pagescms.org): productos, categorías, marcas y ajustes como JSON en
+  `contenido/catalogo/`. Si existe `contenido/catalogo/productos/`, el build lee esos archivos (`src/fuente-archivos.mjs`)
+  en vez del Excel; `CATALOGO=catalogo/catalogo.xlsx npm run build` fuerza el Excel. Mismas reglas: `normalize()` valida igual.
+- `node scripts/excel-a-archivos.mjs <SKU…>|--todos` migra del Excel a archivos.
+- **No fusionar a `main` con solo una parte del catálogo migrada**: el sitio publicaría solo esos productos.
+
 ## Reglas del Excel (las aplica `normalize()`)
 
 - Solo se publican filas con `estado = validado`. Otros estados: `borrador`, `pendiente`, `oculto`.

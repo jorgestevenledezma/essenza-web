@@ -1,0 +1,23 @@
+{
+  "estado": "validado",
+  "sku": "ESZ-PIE-002",
+  "nombre": "Piloskin cabello graso",
+  "marca": "SKINDRUG",
+  "categoria": "Cuidado de la piel",
+  "subcategoria": "Limpieza",
+  "precio": 90000,
+  "disponibilidad": "disponible",
+  "descripcion_corta": "Shampoo seborregulador para cabello graso que ayuda a regular el exceso de grasa y a mantener el cuero cabelludo limpio.",
+  "para_quien": "Para personas con el cabello graso",
+  "ingredientes_materiales": "Activos declarados por el fabricante (lista INCI completa no publicada): ácido salicílico, biotina, Kalizinc, pantenol y Prodew 500.",
+  "modo_uso": "Humedecer el cabello y eliminar el exceso de agua. Emulsionar con agua, masajear suavemente, dejar actuar 5 minutos y enjuagar bien. Uso interdiario.",
+  "precauciones": "Uso externo. Evita el contacto con los ojos. Si notas irritación, suspende su uso y consulta a un profesional de la salud.",
+  "presentacion": "280 mL + 20 mL",
+  "solo_adultos": false,
+  "destacado": false,
+  "nuevo": false,
+  "imagenes": [
+    "/productos/ESZ-PIE-002/1.webp"
+  ],
+  "notas_internas": "Fuente oficial: https://skindrug.com.co/producto/piloskin-graso/ (consultada 2026-10-15). Pendiente: INCI completo; registro sanitario / notificación INVIMA; fabricante de planta; precauciones y advertencias (no publicados en la ficha oficial). La descripción_corta existente dice 'Por 280ml'; la ficha oficial indica 'Tamaño: 280mL + 20mL' (20 mL adicionales). Confirmar presentación vigente."
+}

@@ -1,0 +1,22 @@
+{
+  "estado": "validado",
+  "sku": "ESZ-PIE-028",
+  "nombre": "Gelclin H2o",
+  "marca": "SKINDRUG",
+  "categoria": "Cuidado de la piel",
+  "precio": 121000,
+  "disponibilidad": "disponible",
+  "descripcion_corta": "Limpiador en agua micelar que retira el maquillaje y las impurezas de forma suave.",
+  "para_quien": "Todo tipo de piel. Zonas de aplicación: párpados, pestañas, cejas y labios.",
+  "ingredientes_materiales": "Activos declarados por el fabricante (lista INCI completa no publicada): xilitol, manitol, glicerina, Prodew 600 y Phycosaccharide AP.",
+  "modo_uso": "Aplicar con un pomo o disco de algodón, con movimientos suaves desde el centro hacia afuera, y enjuagar con abundante agua. Uso de día y de noche.",
+  "precauciones": "Uso externo. Evita el contacto con los ojos. Si notas irritación, suspende su uso y consulta a un profesional de la salud.",
+  "presentacion": "210 mL",
+  "solo_adultos": false,
+  "destacado": false,
+  "nuevo": false,
+  "imagenes": [
+    "/productos/ESZ-PIE-028/1.webp"
+  ],
+  "notas_internas": "Fuente oficial: https://skindrug.com.co/producto/gelclin-h2o/ (consultada 2026-10-15). Pendiente: INCI completo; registro sanitario / notificación INVIMA; fabricante de planta; precauciones y advertencias (no publicados en la ficha oficial)."
+}

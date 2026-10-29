@@ -1,0 +1,19 @@
+{
+  "estado": "validado",
+  "sku": "ESZ-PIE-004",
+  "nombre": "Piloskin anticaspa",
+  "marca": "SKINDRUG",
+  "categoria": "Cuidado de la piel",
+  "precio": 87000,
+  "disponibilidad": "disponible",
+  "descripcion_corta": "Shampoo anticaspa de uso interdiario que ayuda a reducir la caspa y a regular el exceso de grasa del cuero cabelludo.",
+  "para_quien": "Todo tipo de cabello.",
+  "ingredientes_materiales": "Activos declarados por el fabricante (lista INCI completa no publicada): biotina, pantenol, Pentavitin, piroctone olamine, Prodew 500 y zinc PCA.",
+  "modo_uso": "Humedecer el cabello y eliminar el exceso de agua. Emulsionar con agua, masajear suavemente, dejar actuar 5 minutos y enjuagar bien. Uso interdiario.",
+  "precauciones": "Uso externo. Evita el contacto con los ojos. Si notas irritación, suspende su uso y consulta a un profesional de la salud.",
+  "presentacion": "280 mL + 20 mL",
+  "solo_adultos": false,
+  "destacado": false,
+  "nuevo": false,
+  "notas_internas": "Fuente oficial: https://skindrug.com.co/producto/piloskin-anticaspa/ (consultada 2026-10-15). Pendiente: INCI completo; registro sanitario / notificación INVIMA; fabricante de planta; precauciones y advertencias (no publicados en la ficha oficial). El nombre del catálogo ('anticaspa anticaida') difiere del oficial ('Piloskin® Anticaspa'); la ficha oficial no menciona anticaída."
+}

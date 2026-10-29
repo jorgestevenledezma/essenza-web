@@ -1,0 +1,16 @@
+{
+  "estado": "pendiente",
+  "sku": "ESZ-EQU-003",
+  "nombre": "Café Verde Fibra Natural",
+  "marca": "ESSENZA",
+  "categoria": "Equilibrio interno",
+  "precio": 35000,
+  "disponibilidad": "disponible",
+  "solo_adultos": false,
+  "destacado": false,
+  "nuevo": false,
+  "imagenes": [
+    "/productos/ESZ-EQU-003/1.webp"
+  ],
+  "notas_internas": "ALERTA INVIMA: INVIMA (15-04-2026) declaró fraudulento 'Café verde orgánico alto contenido en fibra natural libre de gluten': registros RTCA5388602 y NSA-1932041-2020 falsos y sin aprobación como suplemento. Nombre similar al del catálogo: verificar antes de publicar. Fuente: https://www.invima.gov.co/alertas-sanitarias/cafe-verde-organico-alto-contenido-en-fibra-natural-libre-de-gluten (consultada 2026-10-15)."
+}

@@ -5,6 +5,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import * as XLSX from 'xlsx';
 import { normalize, buildSite } from '../src/render.mjs';
+import { hayArchivos, leerArchivos } from '../src/fuente-archivos.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const OUT = path.join(ROOT, 'dist');
@@ -14,10 +15,11 @@ const STATIC = path.join(ROOT, 'static');
 const IMG_EXT = /\.(webp|avif|jpe?g|png)$/i;
 
 const t0 = Date.now();
-if (!fs.existsSync(EXCEL)) { console.error(`✗ No encuentro el Excel: ${EXCEL}`); process.exit(1); }
-
-// 1. Leer Excel
-const wb = XLSX.read(fs.readFileSync(EXCEL), { type: 'buffer' });
+// 1. Leer el catálogo: archivos de Pages CMS (contenido/catalogo/) si existen; si no, el Excel
+const ARCHIVOS = hayArchivos(ROOT) && !process.env.CATALOGO;
+if (!ARCHIVOS && !fs.existsSync(EXCEL)) { console.error(`✗ No encuentro el Excel: ${EXCEL}`); process.exit(1); }
+const fuente = ARCHIVOS ? leerArchivos(ROOT) : null;
+const wb = ARCHIVOS ? null : XLSX.read(fs.readFileSync(EXCEL), { type: 'buffer' });
 const sheet = name => {
   const ws = wb.Sheets[name] || wb.Sheets[Object.keys(wb.Sheets).find(k => k.toLowerCase() === name.toLowerCase())];
   if (!ws) { console.warn(`! Falta la hoja "${name}"`); return []; }
@@ -35,7 +37,10 @@ if (fs.existsSync(IMG_DIR)) {
   }
 }
 
-const productos = sheet('Productos');
+// Las fotos elegidas en Pages CMS (campo imagenes) reemplazan a las encontradas en la carpeta del SKU
+if (ARCHIVOS) Object.assign(imagenes, fuente.imagenes);
+
+const productos = ARCHIVOS ? fuente.productos : sheet('Productos');
 
 // 2b. Carpeta de fotos para cada producto validado: catalogo/productos/<SKU>/ (con .gitkeep para que Git la guarde).
 // Solo en el computador de quien edita; en GitHub Actions (CI) no tiene sentido crear carpetas.
@@ -53,9 +58,9 @@ if (!process.env.CI) {
   }
 }
 
-const data = normalize({
-  productos, categorias: sheet('Categorias'), marcas: sheet('Marcas'), config: sheet('Config'), imagenes,
-});
+const data = normalize(ARCHIVOS
+  ? { productos, categorias: fuente.categorias, marcas: fuente.marcas, config: fuente.config, imagenes }
+  : { productos, categorias: sheet('Categorias'), marcas: sheet('Marcas'), config: sheet('Config'), imagenes });
 
 // 3. Contenido extra
 const blogFile = path.join(ROOT, 'contenido/blog.json');
@@ -87,7 +92,7 @@ const host = dominio.replace(/^https?:\/\//, '');
 if (host && !host.endsWith('github.io')) fs.writeFileSync(path.join(OUT, 'CNAME'), host + '\n');
 
 // 5. Reporte
-console.log(`\nESSENZA · sitio generado en ${((Date.now() - t0) / 1000).toFixed(1)} s`);
+console.log(`\nESSENZA · sitio generado en ${((Date.now() - t0) / 1000).toFixed(1)} s · catálogo desde ${ARCHIVOS ? 'contenido/catalogo/ (Pages CMS)' : path.relative(ROOT, EXCEL)}`);
 console.log(`  ✓ ${data.products.length} productos publicados · ${data.skipped} sin publicar (borrador/pendiente/incompletos)`);
 console.log(`  ✓ ${Object.keys(pages).length} páginas · ${data.cats.length} categorías · ${data.brands.length} marcas · ${blog.length} artículos`);
 if (!assets.some(a => a.startsWith('og.'))) missing.push('og');

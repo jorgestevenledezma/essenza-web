@@ -1,0 +1,43 @@
+{
+  "estado": "validado",
+  "sku": "ESZ-KIT-001",
+  "nombre": "Mini Kit Fantasía",
+  "marca": "ESSENZA",
+  "categoria": "Kits y rituales",
+  "subcategoria": "Kits",
+  "slug": "mini-kit-fantasia",
+  "precio": 65000,
+  "disponibilidad": "disponible",
+  "descripcion_corta": "Antifaz, dados, esposas y pluma para salir de la rutina en pareja.",
+  "por_que_lo_recomendamos": "Un primer paso sencillo y divertido para explorar el juego en pareja sin presión.",
+  "para_quien": "Parejas que quieren introducir el juego de forma ligera.",
+  "beneficios": [
+    "Incluye cuatro piezas complementarias",
+    "Fácil de guardar",
+    "Ideal para regalar"
+  ],
+  "caracteristicas": [
+    "Antifaz",
+    "Dados",
+    "Esposas",
+    "Pluma"
+  ],
+  "ingredientes_materiales": "pendiente de validación",
+  "precauciones": "Acuerden límites antes de jugar.",
+  "presentacion": "Kit de 4 piezas",
+  "variaciones": "Color: Negro|Rojo|Rosado",
+  "atributos": [
+    "uso:Pareja",
+    "experiencia:Principiante"
+  ],
+  "solo_adultos": true,
+  "destacado": true,
+  "nuevo": false,
+  "relacionados": [
+    "ESZ-INT-001"
+  ],
+  "texto_alternativo": "Mini Kit Fantasía con antifaz, dados, esposas y pluma",
+  "seo_title": "Mini Kit Fantasía | ESSENZA",
+  "meta_description": "Antifaz, dados, esposas y pluma para salir de la rutina en pareja. Envíos a Colombia en empaque 100% discreto.",
+  "notas_internas": "Confirmar materiales de cada pieza."
+}

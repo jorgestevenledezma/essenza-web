@@ -1,0 +1,15 @@
+{
+  "estado": "validado",
+  "sku": "ESZ-EQU-004",
+  "nombre": "Aceite de Oregano 6000 mg",
+  "marca": "ESSENZA",
+  "categoria": "Equilibrio interno",
+  "precio": 45000,
+  "disponibilidad": "disponible",
+  "solo_adultos": false,
+  "destacado": false,
+  "nuevo": false,
+  "imagenes": [
+    "/productos/ESZ-EQU-004/1.webp"
+  ]
+}

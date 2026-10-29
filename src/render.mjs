@@ -53,6 +53,7 @@ export function normalize(raw) {
   let skipped = 0;
   (raw.productos || []).forEach((r, i) => {
     const fila = r._fila || i + 2;
+    const donde = typeof fila === 'number' ? `Fila ${fila}` : fila; // con contenido/catalogo/ es el nombre del archivo
     if (!str(r.sku) && !str(r.nombre)) return; // fila vacía del Excel
     if (str(r.estado).toLowerCase() !== 'validado') { skipped++; return; }
     const sku = str(r.sku), nombre = str(r.nombre), marca = str(r.marca), categoria = str(r.categoria), precio = Number(r.precio);
@@ -63,8 +64,8 @@ export function normalize(raw) {
     if (!catBy[categoria]) faltan.push('categoría válida');
     if (!(precio > 0)) faltan.push('precio');
     if (!has(r.descripcion_corta)) faltan.push('descripcion_corta');
-    if (faltan.length) { warnings.push(`Fila ${fila} (${sku || nombre || 'sin nombre'}): no se publica, falta ${faltan.join(', ')}.`); skipped++; return; }
-    if (skus.has(sku)) { warnings.push(`Fila ${fila}: SKU duplicado ${sku}, se omite.`); skipped++; return; }
+    if (faltan.length) { warnings.push(`${donde} (${sku || nombre || 'sin nombre'}): no se publica, falta ${faltan.join(', ')}.`); skipped++; return; }
+    if (skus.has(sku)) { warnings.push(`${donde}: SKU duplicado ${sku}, se omite.`); skipped++; return; }
     skus.add(sku);
     if (!brandBy[marca]) { brands.push(brandBy[marca] = { name: marca, slug: slugify(marca), universo: '', desc: '' }); warnings.push(`Marca "${marca}" no está en la hoja Marcas; se creó automáticamente.`); }
     let slug = str(r.slug) || slugify(`${nombre} ${marca}`);

@@ -1,0 +1,43 @@
+{
+  "estado": "validado",
+  "sku": "ESZ-INT-002",
+  "nombre": "Huevo Vibrador Económico",
+  "marca": "ESSENZA",
+  "categoria": "Bienestar íntimo",
+  "subcategoria": "Juguetes",
+  "slug": "huevo-vibrador-economico",
+  "precio": 25000,
+  "disponibilidad": "disponible",
+  "descripcion_corta": "Huevo vibrador alámbrico, compacto y discreto, con vibración graduable de suave a intensa.",
+  "por_que_lo_recomendamos": "Una opción accesible y discreta para explorar sola o en pareja, con la intensidad a tu medida.",
+  "para_quien": "Uso individual o en pareja.",
+  "descripcion_completa": "Huevo vibrador alámbrico de tamaño compacto y diseño discreto, con vibración graduable que va de suave a intensa. Funciona con pila 2A e incluye control. Es una opción accesible para explorar nuevas sensaciones, sola o en pareja, y es fácil de llevar contigo.",
+  "beneficios": [
+    "Precio accesible",
+    "Tamaño compacto y discreto",
+    "Vibración efectiva de suave a intensa",
+    "Ayuda a explorar nuevas sensaciones",
+    "Fácil de transportar"
+  ],
+  "caracteristicas": [
+    "Huevo vibrador alámbrico",
+    "Vibración graduable",
+    "Pila 2A"
+  ],
+  "modo_uso": "Insertar con cuidado, encender y ajustar la intensidad según preferencia (incluye control).",
+  "precauciones": "Se recomienda usar con lubricante a base de agua. Limpiar antes y después de cada uso.",
+  "atributos": [
+    "tipo:Huevo vibrador",
+    "uso:Individual,Pareja",
+    "control:Alámbrico",
+    "alimentacion:Pilas",
+    "vibracion:Graduable"
+  ],
+  "solo_adultos": true,
+  "destacado": false,
+  "nuevo": false,
+  "texto_alternativo": "Huevo Vibrador Económico de ESSENZA",
+  "seo_title": "Huevo Vibrador Económico | ESSENZA",
+  "meta_description": "Huevo vibrador alámbrico, compacto y discreto, con vibración graduable de suave a intensa. Envíos a Colombia en empaque 100% discreto.",
+  "notas_internas": "Pendiente confirmar dimensiones, peso y presentación. Confirmar tipo de pila (el portafolio indica \"2A\")."
+}
