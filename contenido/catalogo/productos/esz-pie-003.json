@@ -1,0 +1,22 @@
+{
+  "estado": "validado",
+  "sku": "ESZ-PIE-003",
+  "nombre": "Piloskin biotina",
+  "marca": "SKINDRUG",
+  "categoria": "Cuidado de la piel",
+  "precio": 75000,
+  "disponibilidad": "disponible",
+  "descripcion_corta": "Shampoo de uso diario que limpia el cabello, con biotina, pantenol y Anageline (extracto vegetal).",
+  "para_quien": "Cabello normal a seco.",
+  "ingredientes_materiales": "Activos declarados por el fabricante (lista INCI completa no publicada): Anageline, biotina, pantenol y Prodew 500.",
+  "modo_uso": "Humedecer el cabello y eliminar el exceso de agua. Emulsionar con agua, masajear suavemente, dejar actuar 5 minutos y enjuagar bien. Uso diario.",
+  "precauciones": "Uso externo. Evita el contacto con los ojos. Si notas irritación, suspende su uso y consulta a un profesional de la salud.",
+  "presentacion": "280 mL + 20 mL",
+  "solo_adultos": false,
+  "destacado": false,
+  "nuevo": false,
+  "imagenes": [
+    "/productos/ESZ-PIE-003/1.webp"
+  ],
+  "notas_internas": "Fuente oficial: https://skindrug.com.co/producto/piloskin-biotina/ (consultada 2026-10-15). Pendiente: INCI completo; registro sanitario / notificación INVIMA; fabricante de planta; precauciones y advertencias (no publicados en la ficha oficial)."
+}

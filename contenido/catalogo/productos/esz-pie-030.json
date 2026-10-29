@@ -1,0 +1,15 @@
+{
+  "estado": "validado",
+  "sku": "ESZ-PIE-030",
+  "nombre": "Hydraxer lifting efect Ampollas",
+  "marca": "DermaElite",
+  "categoria": "Cuidado de la piel",
+  "precio": 350000,
+  "disponibilidad": "disponible",
+  "solo_adultos": false,
+  "destacado": false,
+  "nuevo": false,
+  "imagenes": [
+    "/productos/ESZ-PIE-030/1.webp"
+  ]
+}

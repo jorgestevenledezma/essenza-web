@@ -1,0 +1,358 @@
+# Panel de administración de ESSENZA (Pages CMS · https://pagescms.org)
+# Edita los archivos de contenido/catalogo/; cada "Guardar" es un commit y el sitio se vuelve a generar.
+# Las reglas de contenido (sin promesas médicas, nada inventado, +18 discreto) están en .claude/CLAUDE.md.
+
+media:
+  - name: productos
+    label: Fotos de productos
+    input: catalogo/productos
+    output: /productos
+    extensions: [webp, jpg, jpeg, png]
+    rename: safe
+  - name: sitio
+    label: Fotos del sitio
+    input: static/img
+    output: /img
+    extensions: [webp, jpg, jpeg, png]
+    rename: safe
+
+settings:
+  commit:
+    # Los commits muestran el nombre de quien editó (Diana o Jorge), no el de la app
+    identity: user
+    templates:
+      create: "Crea {path} (panel)"
+      update: "Actualiza {path} (panel)"
+      delete: "Elimina {path} (panel)"
+      rename: "Renombra {oldPath} a {newPath} (panel)"
+
+actions:
+  - name: revisar-catalogo
+    label: Revisar catálogo
+    workflow: pages-cms-revisar.yml
+    ref: current
+    confirm: false
+
+content:
+  - name: catalogo
+    label: Catálogo
+    type: group
+    items:
+      - name: productos
+        label: Productos
+        type: collection
+        path: contenido/catalogo/productos
+        format: json
+        filename: "{fields.sku}.json"
+        operations:
+          # Para retirar un producto se cambia el estado a "oculto"; borrar el archivo no deja rastro en el panel
+          delete: false
+          rename: false
+        view:
+          primary: nombre
+          fields: [nombre, sku, marca, estado, precio, disponibilidad]
+          sort: [nombre, sku, precio, estado, disponibilidad]
+          search: [nombre, sku, marca, categoria, estado, disponibilidad]
+          default:
+            sort: sku
+            order: asc
+        fields:
+          - name: estado
+            label: Estado
+            type: select
+            required: true
+            description: Solo los productos "Validado" con los datos obligatorios se publican en la web.
+            options:
+              values:
+                - { name: validado, label: Validado (se publica) }
+                - { name: borrador, label: Borrador }
+                - { name: pendiente, label: Pendiente de revisión }
+                - { name: oculto, label: Oculto (retirado de la web) }
+          - name: sku
+            label: SKU
+            type: string
+            required: true
+            description: "ESZ-<categoría>-<número>: PIE piel, EQU equilibrio, INT íntimo, KIT kits. No se cambia después de crear el producto."
+            pattern:
+              regex: "^ESZ-(PIE|EQU|INT|KIT)-\\d{3}$"
+              message: "Formato ESZ-PIE-001 (PIE, EQU, INT o KIT y tres números)"
+          - name: nombre
+            label: Nombre
+            type: string
+            required: true
+          - name: marca
+            label: Marca
+            type: reference
+            required: true
+            options:
+              collection: marcas
+              value: "{fields.marca}"
+              label: "{fields.marca}"
+              search: marca
+          - name: categoria
+            label: Categoría
+            type: reference
+            required: true
+            options:
+              collection: categorias
+              value: "{fields.categoria}"
+              label: "{fields.categoria}"
+          - name: subcategoria
+            label: Subcategoría
+            type: string
+            description: Debe ser una de las subcategorías de la categoría elegida (ver Catálogo → Categorías).
+          - name: precio
+            label: Precio (COP)
+            type: number
+            required: true
+            description: Solo el número, sin puntos ni $. Ejemplo 87000.
+            options:
+              min: 1
+          - name: precio_promocional
+            label: Precio promocional (COP)
+            type: number
+            description: Opcional. Solo se aplica si es menor que el precio.
+            options:
+              min: 0
+          - name: disponibilidad
+            label: Disponibilidad
+            type: select
+            required: true
+            description: '"Agotado" sigue visible en la web pero sin botón de compra.'
+            options:
+              values: [disponible, por encargo, agotado]
+          - name: imagenes
+            label: Fotos
+            type: image
+            description: La primera es la principal. Formato 4:5, idealmente 1200×1500. Súbelas en la carpeta con el SKU del producto.
+            options:
+              media: productos
+              multiple:
+                max: 6
+              unique: true
+          - name: descripcion_corta
+            label: Descripción corta
+            type: text
+            required: true
+            description: Sale en la tarjeta del producto y en Google. Sin promesas médicas ("ayuda a", "contribuye a"). Máximo 160 caracteres.
+            options:
+              maxlength: 160
+          - name: por_que_lo_recomendamos
+            label: Por qué lo recomendamos
+            type: text
+          - name: para_quien
+            label: Para quién es
+            type: text
+          - name: descripcion_completa
+            label: Descripción completa
+            type: text
+          - name: beneficios
+            label: Beneficios
+            type: string
+            list: true
+            description: Uno por línea. Nunca inventes beneficios; si falta el dato, déjalo vacío.
+          - name: caracteristicas
+            label: Características
+            type: string
+            list: true
+          - name: ingredientes_materiales
+            label: Ingredientes o materiales
+            type: text
+          - name: modo_uso
+            label: Modo de uso
+            type: text
+          - name: precauciones
+            label: Precauciones
+            type: text
+          - name: presentacion
+            label: Presentación
+            type: string
+            description: Ejemplo "280 mL" o "60 g".
+          - name: dimensiones
+            label: Dimensiones
+            type: string
+          - name: peso
+            label: Peso
+            type: string
+          - name: variaciones
+            label: Variaciones
+            type: string
+            description: 'Ejemplo "Color: Rosa|Morado". Déjalo vacío si no tiene.'
+          - name: atributos
+            label: Atributos (filtros de la tienda)
+            type: string
+            list: true
+            description: 'Uno por línea, con el formato "clave:valor1,valor2". Ejemplo "tipo_de_piel:Grasa,Mixta".'
+          - name: solo_adultos
+            label: Solo para mayores de 18
+            type: boolean
+            description: Obligatorio en todo producto de bienestar íntimo.
+          - name: destacado
+            label: Destacado en el inicio
+            type: boolean
+            description: Se muestran máximo 4.
+          - name: nuevo
+            label: Novedad
+            type: boolean
+          - name: relacionados
+            label: Productos relacionados
+            type: reference
+            options:
+              collection: productos
+              multiple: true
+              max: 4
+              value: "{fields.sku}"
+              label: "{fields.sku} · {fields.nombre}"
+              search: nombre,sku
+          - name: slug
+            label: Dirección web (slug)
+            type: string
+            description: Vacío = se genera del nombre y la marca. No lo cambies en un producto ya publicado, porque su enlace deja de funcionar.
+            pattern:
+              regex: "^[a-z0-9-]*$"
+              message: Solo minúsculas, números y guiones
+          - name: texto_alternativo
+            label: Texto alternativo de la foto
+            type: string
+            description: Describe la foto para personas con lector de pantalla. Vacío = nombre y marca.
+          - name: seo_title
+            label: Título para Google
+            type: string
+            description: Opcional. Máximo 60 caracteres.
+            options:
+              maxlength: 60
+          - name: meta_description
+            label: Descripción para Google
+            type: text
+            description: Opcional. Entre 120 y 155 caracteres; si está vacía se usa la descripción corta.
+            options:
+              maxlength: 155
+          - name: notas_internas
+            label: Notas internas
+            type: text
+            description: No sale en la web, pero queda en GitHub. Nunca pongas costos, proveedores ni datos de clientes.
+
+      - name: categorias
+        label: Categorías
+        type: collection
+        path: contenido/catalogo/categorias
+        format: json
+        filename: "{fields.slug}.json"
+        operations:
+          delete: false
+          rename: false
+        view:
+          primary: categoria
+          fields: [categoria, slug]
+        fields:
+          - name: categoria
+            label: Nombre
+            type: string
+            required: true
+          - name: slug
+            label: Dirección web (slug)
+            type: string
+            required: true
+            description: No lo cambies después de publicar la categoría.
+            pattern:
+              regex: "^[a-z0-9-]+$"
+              message: Solo minúsculas, números y guiones
+          - name: descripcion_categoria
+            label: Descripción
+            type: text
+          - name: subcategorias
+            label: Subcategorías
+            type: string
+            list: true
+
+      - name: marcas
+        label: Marcas
+        type: collection
+        path: contenido/catalogo/marcas
+        format: json
+        filename: "{fields.slug}.json"
+        operations:
+          delete: false
+          rename: false
+        view:
+          primary: marca
+          fields: [marca, universo]
+          search: [marca]
+        fields:
+          - name: marca
+            label: Nombre
+            type: string
+            required: true
+          - name: slug
+            label: Dirección web (slug)
+            type: string
+            required: true
+            pattern:
+              regex: "^[a-z0-9-]+$"
+              message: Solo minúsculas, números y guiones
+          - name: universo
+            label: Universo
+            type: select
+            options:
+              values: [Cuidado de la piel, Equilibrio interno, Bienestar íntimo, Kits y rituales, Todos]
+          - name: descripcion_marca
+            label: Descripción
+            type: text
+            description: Solo datos verificables de la marca; si no tienes un texto oficial, déjala vacía.
+
+  - name: configuracion
+    label: Ajustes de la tienda
+    type: file
+    path: contenido/catalogo/configuracion.json
+    format: json
+    operations:
+      delete: false
+    fields:
+      - name: whatsapp_numero
+        label: Número de WhatsApp
+        type: string
+        required: true
+        description: Con indicativo 57, por ejemplo 573216115807.
+      - name: dominio
+        label: Dominio
+        type: string
+        readonly: true
+      - name: moneda
+        label: Moneda
+        type: string
+        readonly: true
+      - name: mensaje_general
+        label: Mensaje de WhatsApp general
+        type: string
+      - name: mensaje_categoria
+        label: Mensaje de WhatsApp en categorías
+        type: string
+        description: "{categoria} se reemplaza solo."
+      - name: mensaje_producto
+        label: Mensaje de WhatsApp en productos
+        type: string
+        description: "{producto} y {url} se reemplazan solos."
+      - name: mensaje_pedido
+        label: Encabezado del pedido
+        type: string
+      - name: texto_envio
+        label: Texto de envíos
+        type: string
+      - name: aviso_adultos
+        label: Aviso +18
+        type: string
+      - name: email
+        label: Correo de contacto
+        type: string
+      - name: horario
+        label: Horario de atención
+        type: string
+      - name: instagram
+        label: Instagram (enlace completo)
+        type: string
+      - name: facebook
+        label: Facebook (enlace completo)
+        type: string
+      - name: tiktok
+        label: TikTok (enlace completo)
+        type: string

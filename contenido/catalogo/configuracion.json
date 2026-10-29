@@ -1,0 +1,11 @@
+{
+  "whatsapp_numero": "57 321 6115807",
+  "dominio": "https://www.essenzabydianacaliz.com",
+  "moneda": "COP",
+  "mensaje_general": "Hola Diana, quisiera recibir asesoría.",
+  "mensaje_categoria": "Hola Diana, tengo una consulta sobre {categoria}.",
+  "mensaje_producto": "Hola Diana, me interesa {producto}: {url}",
+  "mensaje_pedido": "Hola Diana, quiero hacer este pedido:",
+  "texto_envio": "Envíos a Colombia en empaque 100% discreto.",
+  "aviso_adultos": "Producto para uso exclusivo de personas mayores de 18 años."
+}

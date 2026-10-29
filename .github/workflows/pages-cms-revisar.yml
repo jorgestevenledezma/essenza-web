@@ -1,0 +1,35 @@
+name: Revisar catálogo
+
+# Botón "Revisar catálogo" del panel (Pages CMS). Genera el sitio sin publicarlo y deja los avisos
+# (productos que no se publican, promesas médicas, fotos faltantes…) en el resumen de la ejecución.
+on:
+  workflow_dispatch:
+    inputs:
+      payload:
+        description: Datos que envía Pages CMS (JSON)
+        required: false
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  revisar:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: npm install --no-audit --no-fund
+      - name: Generar el sitio y resumir los avisos
+        run: |
+          npm run build 2>&1 | tee build.log
+          {
+            echo "## Revisión del catálogo"
+            echo
+            grep -E '✓|catálogo desde' build.log | sed 's/^ *//'
+            echo
+            echo "### Para revisar"
+            grep -E '^\s+! ' build.log | sed 's/^ *! /- /' || echo "- Nada pendiente 🎉"
+          } >> "$GITHUB_STEP_SUMMARY"
