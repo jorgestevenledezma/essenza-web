@@ -77,6 +77,8 @@ ul{margin:0;padding:0}
 .hero{display:grid;grid-template-columns:1fr 1fr;min-height:min(78vh,640px)}
 .hero-text{display:flex;flex-direction:column;justify-content:center;gap:22px;padding:64px clamp(24px,6vw,88px)}
 .hero-media{min-height:420px}
+/* La foto rellena el alto que marca el texto (absoluta), en vez de estirar la portada con su proporción 4:5 */
+.hero-media>img{position:absolute;inset:0}
 
 .section{padding:clamp(56px,8vw,96px) 24px}
 .section-sm{padding:44px 24px}
