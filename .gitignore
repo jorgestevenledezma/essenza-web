@@ -4,3 +4,6 @@ dist/
 ~$*.xlsx
 *.tmp
 *:Zone.Identifier
+
+# Fotos crudas que deja Diana: se procesan con npm run fotos y nunca se suben
+catalogo/imagenes/

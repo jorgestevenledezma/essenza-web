@@ -20,7 +20,20 @@ Se necesita ImageMagick (`convert`, `identify`) con soporte WebP: verifica con `
 
 El nombre de la carpeta debe ser el **SKU exacto** del Excel (mayúsculas incluidas).
 
-## Convertir
+## Fotos de producto: flujo normal
+
+1. Diana deja las fotos en `catalogo/imagenes/` (carpeta ignorada por Git), nombradas con el SKU:
+   `ESZ-INT-001.jpg` (principal), `ESZ-INT-001-2.jpg` o `ESZ-INT-001 (2).png` (adicionales). Sin SKU en el
+   nombre también sirve: el agente las identifica leyendo el empaque.
+2. Lanza el agente **fotos-producto**: identifica, revisa contenido, corre `npm run fotos` y entrega la hoja de
+   contacto `catalogo/imagenes/_revision.jpg`.
+3. Con la aprobación de Jorge, publica con la skill **publicar-sitio**.
+
+`npm run fotos` (`scripts/fotos.mjs`) hace la conversión: fondo claro → producto centrado sobre marfil con aire;
+foto completa → recorte 4:5. Originales a `catalogo/imagenes/procesadas/`. `--revisar` solo muestra el plan.
+Las fotos de producto **nunca se generan con IA**; las del sitio (portada, universos, blog, og) sí pueden.
+
+## Convertir a mano (fotos del sitio o casos especiales)
 
 ```bash
 # Producto: recorte centrado 4:5, 1200×1500, WebP calidad 82, sin metadatos (quita GPS de fotos de celular)
