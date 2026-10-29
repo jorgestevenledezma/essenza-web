@@ -21,6 +21,7 @@ scripts/build.mjs                 ← lee Excel + fotos → dist/ (HTML, sitemap
                                     (fuera de CI crea catalogo/productos/<SKU>/.gitkeep para cada SKU validado)
 scripts/revisar-catalogo.mjs      ← `npm run revisar`: valida el Excel y lo compara con el último commit
 scripts/serve.mjs                 ← `npm run dev`: build + servidor en http://localhost:4321
+scripts/fotos.mjs                 ← `npm run fotos`: fotos de catalogo/imagenes/ → catalogo/productos/<SKU>/N.webp
 .github/workflows/deploy.yml      ← push a main → build → GitHub Pages
 ```
 
@@ -75,6 +76,8 @@ van en `static/img/` (ver `static/img/LEEME.md`).
 
 - Agente `catalogo-excel`: úsalo **siempre que cambie `catalogo/catalogo.xlsx` o las fotos de productos**.
 - Agente `seo-specialist`: al agregar páginas, cambiar `render.mjs`/`build.mjs` o antes de publicar.
+- Agente `fotos-producto`: cuando Diana deja fotos en `catalogo/imagenes/` (`npm run fotos` las convierte).
+  Las fotos de producto nunca se generan con IA; las del sitio (`static/img/`) sí pueden.
 - Skills: `actualizar-catalogo`, `fotos-producto`, `nuevo-articulo-blog`, `publicar-sitio`.
 
 ## Al editar código
