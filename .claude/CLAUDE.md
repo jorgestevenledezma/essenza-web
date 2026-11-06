@@ -47,8 +47,10 @@ no agregues React, Tailwind, Astro, etc. sin que lo pidan.
 - Bienestar íntimo: tono natural, sin prejuicios y **nunca explícito** (ni en texto ni en fotos). Productos +18 con `solo_adultos = sí`.
 - Suplementos: aclarar que no son medicamentos. Siempre recomendar consultar a un profesional de la salud cuando aplique.
 - Privacidad: no guardar datos de clientes, contraseñas ni tokens en el repo ni en el Excel.
-- Las páginas legales (envíos, privacidad, términos) tienen textos `PENDIENTE`; mientras los tengan llevan `noindex`.
-  La de privacidad debe cumplir la Ley 1581 de 2012 (Colombia).
+- Páginas legales (envíos, privacidad, términos): texto completo en `render.mjs` (Ley 1581 de 2012 y Ley 1480 de 2011).
+  Los datos de Diana salen de la hoja Config (`responsable_nombre`, `responsable_documento`, `responsable_ciudad`,
+  `email`, `envio_tiempos`, `cambios_dias`, `politica_vigencia`); si falta uno, esa sección muestra el aviso
+  "Estamos terminando…" y la página lleva `noindex`. Recomendado: revisión de un abogado antes de completarlos.
 
 ## SEO (ya implementado en `render.mjs`)
 
