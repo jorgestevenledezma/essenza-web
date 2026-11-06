@@ -267,6 +267,7 @@ details[open] summary::after{content:"−"}
 .values>div{border-top:2px solid var(--dorado);padding-top:22px}
 .prose{max-width:780px;margin:0 auto;padding:0 24px 80px;display:flex;flex-direction:column;gap:16px;font-size:16px;line-height:1.85;color:#3f3a33}
 .prose h2{font-size:27px;margin-top:20px;color:var(--carbon)}
+.prose ul{padding-left:22px;display:grid;gap:6px}
 .cta-box{margin-top:32px;background:var(--arena);padding:28px;display:flex;flex-direction:column;gap:10px;align-items:flex-start}
 
 .footer{background:var(--carbon);color:#d8d3ca;padding:64px 24px 28px;font-size:13px}

@@ -109,7 +109,9 @@ export function normalize(raw) {
 
 // ---------------------------------------------------------------- sitio
 export function buildSite(data, opts = {}) {
-  const { cfg, cats, brands, products } = data;
+  const { cfg, cats: todasCats, brands, products } = data;
+  // Categorías sin productos publicados: su página existe (sin indexar) pero no aparecen en menús, inicio ni llms.txt
+  const cats = todasCats.filter(c => products.some(p => p.cat === c));
   const dominio = str(cfg.dominio).replace(/\/$/, '');
   // Dominio sin "www." y con los puntos escapados, para la expresión regular que activa Google Analytics
   const host = dominio.replace(/^https?:\/\/(www\.)?/, '').replace(/\./g, '\\.');
@@ -361,14 +363,14 @@ ${has(cfg.newsletter_action) ? `<section class="section sand"><div class="narrow
     'equilibrio-interno': ['Antes de elegir', [['Cosméticos, suplementos y homeopáticos', 'Cada producto indica a qué grupo pertenece. No son intercambiables entre sí.'], ['Hábitos primero', 'Ningún producto reemplaza el descanso, la alimentación y el movimiento.'], ['Consulta profesional', 'Si tomas medicamentos, estás en embarazo o lactancia, consulta antes con tu médico.']], 'Los suplementos no son medicamentos y no reemplazan una alimentación balanceada.'],
     'bienestar-intimo': ['Antes de elegir, tres cosas que ayudan', [['Conócete primero', 'Identifica qué te genera curiosidad o comodidad. No hay una forma correcta de empezar.'], ['Materiales y seguridad', 'Prioriza silicona de grado médico y verifica la compatibilidad con lubricantes a base de agua.'], ['Privacidad en cada paso', 'Del empaque discreto a la conversación confidencial: tu proceso es solo tuyo.']], 'Productos para personas mayores de 18 años.'],
   };
-  for (const c of cats) {
+  for (const c of todasCats) {
     const ps = products.filter(p => p.cat === c);
     const g = GUIDES[c.slug];
     put(`categoria/${c.slug}/index.html`, {
       title: `${c.name} · ESSENZA by Diana Caliz`, active: 'tienda', wa: msgCat(c),
       jsonld: bcLD([['Tienda', 'tienda/'], [c.name, `categoria/${c.slug}/`]]),
       desc: `${c.desc ? c.desc.replace(/\.?$/, '.') + ' ' : ''}${c.name}: ${ps.length} productos seleccionados por Diana Caliz.`,
-      adult: ps.length > 0 && ps.every(p => p.adultos),
+      adult: ps.length > 0 && ps.every(p => p.adultos), noindex: !ps.length,
       body: b => `<section class="page-head">${crumbs(b, [['Tienda', 'tienda/'], [c.name]])}<h1 class="h1">${esc(c.name)}</h1>${c.desc ? `<p class="muted">${esc(c.desc)}</p>` : ''}
 <div class="chips-row"><span class="pill">Empaque discreto</span><span class="pill">Asesoría confidencial</span>${c.slug === 'bienestar-intimo' ? '<span class="pill">Sin prejuicios</span>' : ''}</div></section>
 ${g ? `<section class="guide-wrap"><h2 class="h3">${g[0]}</h2><div class="guide" data-stagger>${g[1].map(([t, d]) => `<div><h3>${t}</h3><p>${d}</p></div>`).join('')}</div><p class="meta">${g[2]}</p></section>` : ''}
@@ -538,7 +540,7 @@ ${has(cfg.horario) ? `<div><dt>Horario de atención</dt><dd>${esc(cfg.horario)}<
 <section class="inner pad-x pad-b"><div class="grid-3" data-stagger>${blog.map(a => postCard(b, a)).join('')}</div></section>`,
   });
   for (const a of blog) {
-    const c = cats.find(x => x.slug === a.categoria);
+    const c = todasCats.find(x => x.slug === a.categoria);
     const ps = c ? products.filter(p => p.cat === c).slice(0, 4) : [];
     put(`blog/${a.slug}/index.html`, {
       title: a.titulo.length > 52 ? a.titulo : `${a.titulo} · ESSENZA`, active: 'blog', ogType: 'article', desc: a.resumen,
@@ -560,31 +562,53 @@ ${ps.length ? `<section class="related"><h2 class="h2">Productos relacionados</h
   // ------------------------------------------------ páginas legales y ayuda
   const PENDIENTE = `<span class="pending">Estamos terminando de redactar esta sección. Si tienes una duda, <a href="${waHref(msgGeneral)}" target="_blank" rel="noopener">escríbenos por WhatsApp</a> y te respondemos.</span>`;
   const pendientes = [];
+  // Una sección con texto propio puede traer HTML (párrafos y listas); el resto va en un <p>
   const legal = (slug, title, desc, sections) => (sections.some(([, t]) => t.includes(PENDIENTE)) && pendientes.push(`${slug}: ${sections.filter(([, t]) => t.includes(PENDIENTE)).map(([h]) => h).join(', ')}`), put(`${slug}/index.html`, {
     title: `${title} · ESSENZA by Diana Caliz`, desc,
     // Mientras tenga textos pendientes no se indexa: contenido incompleto no debe aparecer en Google
     noindex: sections.some(([, t]) => t.includes(PENDIENTE)),
-    body: b => `<section class="page-head narrow">${crumbs(b, [[title]])}<h1 class="h1">${title}</h1></section><div class="prose">${sections.map(([h, t]) => `<h2>${h}</h2><p>${t}</p>`).join('')}</div>`,
+    body: b => `<section class="page-head narrow">${crumbs(b, [[title]])}<h1 class="h1">${title}</h1>${vigencia ? `<p class="meta">Vigente desde ${vigencia}</p>` : ''}</section><div class="prose">${sections.map(([h, t]) => `<h2>${h}</h2>${t.startsWith('<') ? t : `<p>${t}</p>`}`).join('')}</div>`,
   }));
-  legal('envios-y-cambios', 'Envíos y cambios', 'Envíos a Colombia en empaque discreto. Condiciones de cambios y devoluciones.', [
-    ['Cobertura', 'Realizamos envíos a Colombia. La transportadora y los tiempos se confirman por WhatsApp según tu ciudad.'],
-    ['Empaque discreto', 'Todos los pedidos viajan en empaque 100% discreto, sin logotipos ni referencias al contenido en la caja ni en la guía de envío.'],
-    ['Costos y tiempos de entrega', PENDIENTE],
-    // Por confirmar con Diana: si los productos íntimos abiertos admiten cambio (por higiene, normalmente no)
-    ['Cambios y devoluciones', PENDIENTE],
-    ['Garantías', PENDIENTE],
+  // Datos que solo Diana conoce (hoja Config). Si falta alguno, la sección que lo usa queda pendiente.
+  const dato = k => (has(cfg[k]) ? esc(cfg[k]) : '');
+  const conDatos = (keys, html) => (keys.every(k => has(cfg[k])) ? html() : PENDIENTE);
+  const vigencia = dato('politica_vigencia');
+  const waTxt = WA ? `+${WA.slice(0, 2)} ${WA.slice(2, 5)} ${WA.slice(5)}` : '';
+  const contacto = () => `el correo <strong>${dato('email')}</strong> o WhatsApp <strong>${waTxt}</strong>`;
+  const responsable = () => `<p><strong>${dato('responsable_nombre')}</strong>, identificada con ${dato('responsable_documento')}, con domicilio en ${dato('responsable_ciudad')} (Colombia), es la responsable de la tienda ESSENZA by Diana Caliz y del tratamiento de tus datos personales. Contacto: ${contacto()}.</p>`;
+  const RESPONSABLE = ['responsable_nombre', 'responsable_documento', 'responsable_ciudad', 'email'];
+
+  legal('envios-y-cambios', 'Envíos y cambios', 'Envíos a toda Colombia en empaque 100 % discreto, tiempos de entrega, cambios por producto equivocado o defectuoso y garantía legal.', [
+    ['Cobertura', 'Realizamos envíos a Colombia por transportadora. La transportadora disponible para tu ciudad se confirma por WhatsApp al coordinar el pedido.'],
+    ['Empaque discreto', 'Todos los pedidos viajan en empaque 100 % discreto, sin logotipos ni referencias al contenido en la caja ni en la guía de envío.'],
+    ['Costos y tiempos de entrega', conDatos(['envio_tiempos'], () => `<p>El costo del envío depende de tu ciudad y te lo informamos por WhatsApp antes de que confirmes el pedido; no se cobra nada sin tu confirmación.</p><p>Tiempos de entrega habituales, una vez confirmado el pago: ${dato('envio_tiempos')}. Son estimados de la transportadora y pueden variar en temporadas altas o por causas ajenas a nosotros; si tu pedido se retrasa, te avisamos.</p>`)],
+    ['Cambios por producto equivocado o dañado', conDatos(['cambios_dias'], () => `<p>Si recibes un producto distinto al que pediste, o llega dañado, escríbenos dentro de los <strong>${dato('cambios_dias')} días calendario</strong> siguientes a la entrega, con fotos del empaque y del producto. Lo revisamos y te enviamos el producto correcto, sin costo adicional para ti.</p>`)],
+    ['Productos de uso personal y retracto', `<p>En las compras a distancia tienes derecho de retracto dentro de los 5 días hábiles siguientes a la entrega (artículo 47 de la Ley 1480 de 2011), salvo en los casos que la ley exceptúa, entre ellos los <strong>bienes de uso personal</strong>.</p><p>Por higiene y seguridad, los productos de bienestar íntimo, cuidado de la piel y suplementos se consideran de uso personal: una vez abiertos o sin su sello original <strong>no admiten retracto ni cambio</strong>, salvo que tengan un defecto (ver Garantía legal). Si tienes dudas antes de comprar, escríbenos y te orientamos.</p>`],
+    ['Garantía legal', `<p>Todos los productos tienen la garantía legal de calidad, idoneidad y seguridad que establece el Estatuto del Consumidor (Ley 1480 de 2011). Si un producto presenta un defecto, escríbenos con fotos y el número de tu pedido: lo revisamos y, según el caso, lo cambiamos o te devolvemos el dinero.</p><p>Respondemos las solicitudes de garantía en un plazo máximo de 15 días hábiles. La garantía no cubre el uso distinto al indicado en el empaque o en la ficha del producto.</p>`],
   ]);
-  legal('privacidad', 'Privacidad y tratamiento de datos', 'Cómo tratamos tus datos personales.', [
-    ['Responsable', PENDIENTE],
-    ['Qué datos usamos', 'Este sitio no tiene cuentas de usuario ni guarda formularios. Tu carrito se guarda solo en tu navegador. Los datos que envías por WhatsApp se usan únicamente para atender tu consulta o coordinar tu pedido.'],
-    ['Marco legal', `La política de tratamiento de datos debe ajustarse a la Ley 1581 de 2012 de Colombia. ${PENDIENTE}`],
-    ['Tus derechos', `Puedes conocer, actualizar, rectificar o solicitar la eliminación de tus datos escribiéndonos. ${PENDIENTE}`],
+
+  legal('privacidad', 'Privacidad y tratamiento de datos', 'Política de tratamiento de datos personales de ESSENZA (Ley 1581 de 2012): qué datos usamos, para qué, con quién se comparten y cómo ejercer tus derechos.', [
+    ['Responsable', conDatos(RESPONSABLE, responsable)],
+    ['Qué datos usamos', '<p>Este sitio no tiene cuentas de usuario y no guarda formularios. Tu carrito se guarda solo en tu propio navegador. Los datos personales que tratamos son los que tú nos das por WhatsApp o por correo para atender tu consulta o tu pedido: nombre, teléfono, ciudad y dirección de entrega, y el contenido del pedido o de la conversación.</p>'],
+    ['Datos sensibles', '<p>La información sobre productos de bienestar íntimo o de salud puede revelar datos que la ley considera <strong>sensibles</strong> (por ejemplo, sobre tu vida sexual o tu salud). No estás obligada u obligado a darnos datos sensibles: los usamos solo si tú los compartes para pedir asesoría o hacer un pedido, con la reserva que exige la ley, y nunca los usamos con fines publicitarios.</p>'],
+    ['Para qué los usamos', '<ul><li>Responder tus consultas y darte asesoría.</li><li>Coordinar tu pedido, el pago, el envío y las garantías.</li><li>Cumplir obligaciones legales, contables y tributarias.</li><li>Solo si nos autorizas aparte, enviarte novedades u ofertas; puedes pedir que dejemos de hacerlo en cualquier momento.</li></ul>'],
+    ['Quién más interviene', '<ul><li><strong>WhatsApp (Meta Platforms)</strong>, por donde conversamos contigo.</li><li><strong>La transportadora</strong>, que recibe solo los datos necesarios para entregar tu pedido.</li><li><strong>Google Analytics (Google LLC, Estados Unidos)</strong>, que mide de forma agregada cómo se usa el sitio (páginas vistas, tipo de dispositivo, ciudad aproximada) mediante cookies. No le enviamos tu nombre, tu teléfono ni los datos de tu pedido. Puedes bloquear o borrar las cookies en la configuración de tu navegador.</li></ul><p>No vendemos ni alquilamos tus datos personales.</p>'],
+    ['Tus derechos', '<p>Como titular de los datos tienes derecho a conocer, actualizar y rectificar tus datos; solicitar prueba de la autorización que nos diste; ser informada o informado del uso que les damos; presentar quejas ante la Superintendencia de Industria y Comercio; revocar la autorización o pedir que eliminemos tus datos cuando no exista un deber legal de conservarlos; y acceder a ellos de forma gratuita (artículo 8 de la Ley 1581 de 2012).</p>'],
+    ['Cómo ejercerlos', conDatos(['email'], () => `<p>Escríbenos por ${contacto()} indicando tu nombre, tu solicitud y un dato de contacto. Respondemos las <strong>consultas</strong> en máximo 10 días hábiles y los <strong>reclamos</strong> (corrección, actualización o supresión) en máximo 15 días hábiles; si necesitamos más tiempo te lo informaremos antes de que se cumpla el plazo, como lo permite la ley. Antes de acudir a la Superintendencia de Industria y Comercio debes haber presentado la solicitud ante nosotros.</p>`)],
+    ['Cuánto tiempo los guardamos', '<p>Conservamos tus datos solo mientras sean necesarios para las finalidades anteriores y para cumplir obligaciones legales, contables o tributarias. Después los eliminamos.</p>'],
+    ['Menores de edad', '<p>Los productos de bienestar íntimo son exclusivamente para personas mayores de 18 años y no tratamos datos de menores de edad para venderlos.</p>'],
+    ['Marco legal y vigencia', conDatos(['politica_vigencia'], () => `<p>Esta política se rige por la Ley 1581 de 2012 y sus decretos reglamentarios (Decreto 1074 de 2015). Está vigente desde el ${dato('politica_vigencia')} y te avisaremos en este sitio de cualquier cambio importante.</p>`)],
   ]);
-  legal('terminos', 'Términos y condiciones', 'Condiciones de uso del sitio y de compra.', [
-    ['Uso del sitio', PENDIENTE],
-    ['Precios', 'Los precios están en pesos colombianos (COP) y pueden cambiar sin previo aviso. El valor final del pedido, incluido el envío, se confirma por WhatsApp.'],
-    ['Productos para adultos', 'Los productos de bienestar íntimo son para uso exclusivo de personas mayores de 18 años.'],
-    ['Información de producto', 'La información publicada es orientativa y no reemplaza la consulta con un profesional de la salud.'],
+
+  legal('terminos', 'Términos y condiciones', 'Términos y condiciones de uso del sitio y de compra en ESSENZA: cómo se confirma un pedido, precios en COP, productos para adultos y ley aplicable.', [
+    ['Quiénes somos', conDatos(RESPONSABLE, responsable)],
+    ['Uso del sitio', '<p>Este sitio es un catálogo: te permite conocer los productos, armar un carrito y enviarnos tu pedido por WhatsApp. Al usarlo aceptas estos términos. Las fotos son de referencia; la presentación del producto puede variar según el lote del fabricante.</p>'],
+    ['Cómo se confirma un pedido', '<p>Enviar el carrito por WhatsApp no es todavía una compra: es una solicitud. El pedido queda confirmado cuando te confirmamos por WhatsApp la disponibilidad, el valor total con envío y la forma de pago, y tú realizas el pago.</p>'],
+    ['Precios', 'Los precios están en pesos colombianos (COP). Pueden cambiar sin previo aviso, pero respetamos el precio que te confirmamos por WhatsApp para tu pedido. El costo del envío se informa aparte antes de confirmar.'],
+    ['Productos para adultos', 'Los productos de bienestar íntimo son para uso exclusivo de personas mayores de 18 años. Al pedirlos confirmas que eres mayor de edad.'],
+    ['Información de producto', 'La información publicada es orientativa, proviene del fabricante o del empaque y no reemplaza la consulta con un profesional de la salud. Los suplementos no son medicamentos. Lee siempre las indicaciones y precauciones del empaque.'],
+    ['Envíos, cambios y garantía', `<p>Las condiciones de envío, cambios, retracto y garantía están en <a href="../envios-y-cambios/">Envíos y cambios</a>.</p>`],
+    ['Ley aplicable', '<p>Estos términos se rigen por las leyes de Colombia, en especial el Estatuto del Consumidor (Ley 1480 de 2011). Si tienes una queja, escríbenos primero para resolverla; también puedes acudir a la Superintendencia de Industria y Comercio.</p>'],
   ]);
   const FAQ = [
     ['¿Cómo hago un pedido?', 'Agrega los productos al carrito y envía tu pedido por WhatsApp. Allí confirmamos disponibilidad, costo de envío y forma de pago.'],
