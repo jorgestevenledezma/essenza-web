@@ -1,8 +1,11 @@
 # ESSENZA by Diana Caliz · contexto del proyecto
 
 Sitio estático de una tienda colombiana de **cuidado de la piel, equilibrio interno y bienestar íntimo**.
-No hay backend, ni pagos en línea, ni cuentas: el cliente arma un carrito (guardado en `localStorage`)
-y lo envía por **WhatsApp**, donde Diana confirma disponibilidad, envío y pago.
+No hay backend, ni pagos en línea, ni cuentas. **Desde noviembre de 2026 no hay carrito**: cada producto tiene
+«Pedir por WhatsApp» con un mensaje armado (producto, variante, cantidad, subtotal, enlace, nombre y ciudad) y
+Diana confirma disponibilidad, envío y pago. `orderMsg` (render.mjs) y el clic en `[data-order]` (app.js) arman
+el mismo texto: mantenerlos iguales. `/carrito/` queda como aviso (`noindex`) para enlaces viejos; el carrito
+anterior está en el historial de git si se quiere volver a él.
 
 - Dueña del negocio y quien edita el catálogo: **Diana Caliz** (no es programadora; usa Excel y GitHub Desktop).
 - Mantenimiento técnico: Jorge Steven Ledezma (cuenta GitHub `jorgestevenledezma`).
@@ -14,7 +17,7 @@ y lo envía por **WhatsApp**, donde Diana confirma disponibilidad, envío y pago
 ```
 catalogo/catalogo.xlsx            ← fuente de verdad: hojas Productos, Categorias, Marcas, Config
 catalogo/productos/<SKU>/1.webp   ← fotos por SKU (1 = principal, 4:5, 1200×1500)
-static/                           ← CSS, JS del carrito/filtros/quiz, favicon, img/ editoriales
+static/                           ← CSS, JS de pedido por WhatsApp/filtros/quiz, favicon, img/ editoriales
 contenido/blog.json               ← artículos: [{slug,titulo,etiqueta,categoria,resumen,lectura,cuerpo:[["p"|"h",texto]],fecha?,autor?}]
 src/render.mjs                    ← normalize() valida el Excel; buildSite() genera HTML, JSON-LD y llms.txt
 scripts/build.mjs                 ← lee Excel + fotos → dist/ (HTML, sitemap.xml, robots.txt, llms.txt, CNAME)
@@ -56,7 +59,7 @@ no agregues React, Tailwind, Astro, etc. sin que lo pidan.
 
 Título, description y canonical por página; Open Graph (`og:locale es_CO`) y tarjeta de Twitter/X; JSON-LD de
 `OnlineStore` + `WebSite` (inicio), `Product` + `Offer` en COP (producto), `BreadcrumbList` (categoría, marca,
-producto, blog), `Article` (blog) y `FAQPage`; `noindex` en carrito, 404 y legales pendientes; `sitemap.xml`
+producto, blog), `Article` (blog) y `FAQPage`; `noindex` en /carrito/ (aviso), 404 y legales pendientes; `sitemap.xml`
 sin esas páginas; `llms.txt` para buscadores con IA, generado desde el Excel (**sin productos +18** ni marcas que
 solo tengan productos +18). `<meta name="rating" content="adult">` en productos con `solo_adultos = sí` y en
 categorías/marcas donde todos lo son. Descriptions entre 120 y 155 caracteres (`layout()` completa o recorta);
@@ -69,9 +72,15 @@ van en `static/img/` (ver `static/img/LEEME.md`).
   lista qué fotos del sitio faltan en `static/img/`.
 - Textos legales pendientes: aviso amable con enlace a WhatsApp + `noindex`; el build los lista.
 - Marcas sin productos publicados: `noindex` y fuera de la franja de marcas del inicio.
-- Accesibilidad: contraste AA (`--taupe:#75685A`), carrito lateral como diálogo con foco atrapado y Escape,
+- Accesibilidad: contraste AA (`--taupe:#75685A`), menú móvil que se cierra con Escape,
   inputs de 16px en móvil (evita el zoom de iOS), `prefers-reduced-motion` respetado.
-- Movimiento: curvas `--ease-out` y `--ease-drawer`; carrito lateral con deslizamiento, avisos únicos (no se apilan).
+- Movimiento: curvas `--ease-out` y `--ease-drawer`.
+- Orden "Recomendados" (`buildSite`): primero lo general por orden de la hoja Categorias, luego kits y al final
+  bienestar íntimo y todo lo +18; dentro de cada grupo, el orden del Excel. El inicio no muestra productos +18
+  (destacados y kits); sin `destacado` en el Excel elige uno por categoría, primero los que tienen foto.
+- Pedido +18 por WhatsApp: el mensaje lleva solo `Ref. <SKU>` (sin nombre ni enlace) para que el chat sea discreto.
+- Móvil: barra fija con precio y «Pedir por WhatsApp» en la ficha cuando el botón principal sale de la vista;
+  filtros en grupos plegables (cerrados en móvil) con «Ver N productos»; resaltados `:hover` solo con mouse.
 - Pruebas: después de tocar el front, revisa en `npm run dev` escritorio (1440px) y móvil (360–390px).
 
 ## Agentes y skills de este repo
