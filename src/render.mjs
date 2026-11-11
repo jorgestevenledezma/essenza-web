@@ -109,7 +109,13 @@ export function normalize(raw) {
 
 // ---------------------------------------------------------------- sitio
 export function buildSite(data, opts = {}) {
-  const { cfg, cats: todasCats, brands, products } = data;
+  const { cfg, cats: todasCats, brands } = data;
+  // Orden "recomendados": primero lo general (piel, equilibrio…), luego kits y al final bienestar íntimo y todo lo +18,
+  // para que quien llega a la tienda no se encuentre de entrada con productos para adultos. Dentro de cada grupo, el orden del Excel
+  const catRank = c => ({ 'kits-y-rituales': 100, 'bienestar-intimo': 101 }[c.slug] ?? todasCats.indexOf(c));
+  const products = [...data.products]
+    .sort((a, b) => (a.adultos - b.adultos) || (catRank(a.cat) - catRank(b.cat)) || (a.order - b.order))
+    .map((p, i) => Object.assign(p, { order: i }));
   // Categorías sin productos publicados: su página existe (sin indexar) pero no aparecen en menús, inicio ni llms.txt
   const cats = todasCats.filter(c => products.some(p => p.cat === c));
   const dominio = str(cfg.dominio).replace(/\/$/, '');
@@ -141,10 +147,19 @@ export function buildSite(data, opts = {}) {
   const dispText = p => ({ agotado: 'Agotado por ahora', 'por encargo': 'Disponible por encargo' }[p.disponibilidad] || 'Disponible');
   const searchKey = p => slugify(`${p.nombre} ${p.marca} ${p.corta} ${p.cat.name} ${p.subcategoria} ${p.atributos.flatMap(a => a.values).join(' ')}`).replace(/-/g, ' ');
 
-  const addBtn = (p, b, cls) => {
-    if (p.agotado) return `<button type="button" class="${cls}" disabled>Agotado</button>`;
+  // Pedido directo por WhatsApp (sin carrito). static/js/app.js arma el mismo mensaje con la cantidad y la variante elegidas
+  // Productos +18: el mensaje solo lleva la referencia (sin nombre ni enlace) para que el chat y las notificaciones sean discretos
+  const orderName = p => (p.adultos ? `Ref. ${p.sku}` : `${p.nombre} · ${p.marca}`);
+  const orderUrl = p => (p.adultos ? '' : urlOf(`producto/${p.slug}/index.html`));
+  const orderMsg = (p, qty = 1, variant = '') => [
+    cfg.mensaje_pedido || 'Hola Diana, quiero hacer este pedido:', '',
+    `• ${orderName(p)}${variant ? ` (${variant})` : ''} x${qty}: ${fmt(p.final * qty)}`,
+    orderUrl(p), '', 'Nombre: ', 'Ciudad de envío: ',
+  ].filter((l, i, a) => l !== '' || a[i - 1] !== '').join('\n');
+  const orderBtn = (p, b, cls) => {
+    if (p.agotado) return `<button type="button" class="${cls}" disabled>Agotado por ahora</button>`;
     if (p.variacion && cls.includes('btn-sm')) return `<a class="${cls}" href="${b}producto/${p.slug}/">Elegir ${esc(p.variacion.label.toLowerCase())}</a>`;
-    return `<button type="button" class="${cls}" data-add data-sku="${esc(p.sku)}" data-name="${esc(p.nombre + ' · ' + p.marca)}" data-price="${p.final}" data-url="producto/${p.slug}/" aria-label="Agregar ${esc(p.nombre)} al carrito">Agregar al carrito</button>`;
+    return `<a class="${cls} btn-wa" href="${waHref(orderMsg(p, 1, p.variacion ? `${p.variacion.label}: ${p.variacion.options[0]}` : ''))}" target="_blank" rel="noopener" data-order data-sku="${esc(p.sku)}" data-name="${esc(orderName(p))}" data-price="${p.final}" data-url="${esc(orderUrl(p))}" aria-label="Pedir ${esc(p.nombre)} por WhatsApp"><svg class="wa-ico" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M17.5 14.4c-.3-.1-1.8-.9-2-1s-.5-.1-.7.1-.8 1-.9 1.2-.3.2-.6.1a8.2 8.2 0 0 1-2.4-1.5 9 9 0 0 1-1.7-2.1c-.2-.3 0-.5.1-.6l.4-.5.3-.5v-.5l-.9-2.2c-.2-.6-.5-.5-.7-.5h-.6a1.1 1.1 0 0 0-.8.4 3.4 3.4 0 0 0-1 2.5 5.9 5.9 0 0 0 1.2 3.1 13.4 13.4 0 0 0 5.2 4.6c.7.3 1.3.5 1.7.6a4.2 4.2 0 0 0 1.9.1 3.1 3.1 0 0 0 2-1.4 2.5 2.5 0 0 0 .2-1.4c-.1-.2-.3-.2-.6-.4zM12 21.8a9.9 9.9 0 0 1-5-1.4l-.4-.2-3.7 1 1-3.6-.2-.4A9.8 9.8 0 1 1 12 21.8zM20.5 3.5A11.8 11.8 0 0 0 1.9 17.7L.2 24l6.4-1.7a11.8 11.8 0 0 0 5.4 1.4h.1A11.8 11.8 0 0 0 20.5 3.5z" fill="currentColor"/></svg>${cls.includes('btn-sm') ? 'Pedir' : 'Pedir por WhatsApp'}</a>`;
   };
 
   const card = (b, p) => {
@@ -152,7 +167,7 @@ export function buildSite(data, opts = {}) {
     const badges = [p.nuevo && 'Novedad', p.promo && 'Oferta', p.agotado && 'Agotado'].filter(Boolean);
     return `<article class="card" data-name="${esc(searchKey(p))}" data-price="${p.final}" data-order="${p.order}" data-new="${p.nuevo ? 1 : 0}" data-f="${esc(JSON.stringify(f))}">
 <a class="media card-media" href="${b}producto/${p.slug}/" tabindex="-1" aria-hidden="true" style="view-transition-name:p-${p.slug}">${p.imagenes[0] ? `<img src="${b}${p.imagenes[0]}" alt="" loading="lazy" decoding="async" width="800" height="1000">` : ph(p.alt).replace('role="img" ', '')}${badges.length ? `<span class="badges">${badges.map(t => `<span class="badge">${t}</span>`).join('')}</span>` : ''}</a>
-<div class="card-body"><p class="meta">${esc(p.marca)}</p><h3 class="card-title"><a href="${b}producto/${p.slug}/">${esc(p.nombre)}</a></h3><p class="card-desc">${esc(p.corta)}</p><p class="price">${priceHTML(p)}</p>${addBtn(p, b, 'btn btn-sm btn-block')}</div>
+<div class="card-body"><p class="meta">${esc(p.marca)}</p><h3 class="card-title"><a href="${b}producto/${p.slug}/">${esc(p.nombre)}</a></h3><p class="card-desc">${esc(p.corta)}</p><p class="price">${priceHTML(p)}</p>${orderBtn(p, b, 'btn btn-sm btn-block')}</div>
 </article>`;
   };
 
@@ -171,7 +186,7 @@ export function buildSite(data, opts = {}) {
 ${filters.length ? `<button type="button" class="btn btn-outline btn-sm filters-btn" data-filters-toggle aria-expanded="false" aria-controls="filtros">Filtros</button>` : ''}
 <label class="sort"><span class="sr">Ordenar</span><select data-sort><option value="recomendados">Recomendados</option><option value="nuevos">Novedades</option><option value="precio-asc">Precio: menor a mayor</option><option value="precio-desc">Precio: mayor a menor</option></select></label></div>
 <div class="listing-body${filters.length ? '' : ' no-filters'}">
-${filters.length ? `<aside class="filters" id="filtros" data-filters aria-label="Filtros">${filters.map(([k, g]) => `<fieldset><legend>${esc(g.label)}</legend>${[...g.values].map(([v, l]) => `<label class="check"><input type="checkbox" name="${esc(k)}" value="${esc(v)}"> ${esc(l)}</label>`).join('')}</fieldset>`).join('')}<button type="button" class="link" data-clear>Limpiar filtros</button></aside>` : ''}
+${filters.length ? `<aside class="filters" id="filtros" data-filters aria-label="Filtros">${filters.map(([k, g]) => `<details class="fgroup" open><summary>${esc(g.label)}</summary><div class="fopts">${[...g.values].map(([v, l]) => `<label class="check"><input type="checkbox" name="${esc(k)}" value="${esc(v)}"> ${esc(l)}</label>`).join('')}</div></details>`).join('')}<div class="filters-foot"><button type="button" class="btn btn-sm btn-block filters-done" data-filters-done>Ver <span data-count>${ps.length}</span> productos</button><button type="button" class="link" data-clear>Limpiar filtros</button></div></aside>` : ''}
 <div>${ps.length ? `<div class="grid-products" data-grid>${ps.map(p => card(b, p)).join('')}</div>
 <div class="empty" data-empty hidden><p>No encontramos productos con esos filtros.</p><div class="actions center"><button type="button" class="btn btn-outline btn-sm" data-clear>Limpiar filtros</button><a class="btn btn-sm" href="${waHref(msgGeneral)}" target="_blank" rel="noopener">Pedir asesoría</a></div></div>`
       : `<div class="empty"><p>Muy pronto encontrarás productos aquí.</p><p class="muted">Mientras tanto, cuéntanos qué buscas y te orientamos.</p><a class="btn btn-sm" href="${waHref(msgGeneral)}" target="_blank" rel="noopener">Hablar por WhatsApp</a></div>`}</div>
@@ -231,7 +246,7 @@ ${[p.jsonld].flat().filter(Boolean).map(j => `<script type="application/ld+json"
 <div class="nav-drop"><a href="${b}tienda/"${cur('tienda')}>Tienda</a><div class="drop">${cats.map(c => `<a href="${b}categoria/${c.slug}/">${esc(c.name)}</a>`).join('')}<a href="${b}tienda/?orden=nuevos">Novedades</a></div></div>
 ${nav.slice(1).map(([k, t]) => `<a href="${b}${k}/"${cur(k)}>${t}</a>`).join('')}
 </nav>
-<div class="tools"><a class="icon-btn" href="${b}tienda/#buscar" aria-label="Buscar"><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><circle cx="11" cy="11" r="6.5" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M16 16l4.5 4.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg></a><button type="button" class="cart-btn" data-cart-open aria-label="Abrir carrito">Carrito · <span data-cart-count>0</span></button></div>
+<div class="tools"><a class="icon-btn" href="${b}tienda/#buscar" aria-label="Buscar"><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><circle cx="11" cy="11" r="6.5" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M16 16l4.5 4.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg></a></div>
 </div></header>
 <main id="main">
 ${p.body(b)}
@@ -245,14 +260,7 @@ ${p.body(b)}
 </div>
 <div class="footer-bottom"><span>© ${year} ESSENZA by Diana Caliz</span><span>Pedido, pago y envío se coordinan por WhatsApp</span></div>
 </footer>
-<div class="drawer-overlay" data-cart-close hidden></div>
-<aside class="drawer" data-drawer role="dialog" aria-modal="true" aria-labelledby="drawer-title" hidden>
-<div class="drawer-head"><h2 class="h3" id="drawer-title">Tu carrito</h2><button type="button" class="icon-btn" data-cart-close aria-label="Cerrar carrito">✕</button></div>
-<div class="drawer-items" data-cart-items></div>
-<div class="drawer-foot" data-cart-has hidden><div class="total"><span>Subtotal</span><strong data-cart-total></strong></div><a class="btn btn-block" href="${b}carrito/">Finalizar pedido</a><p class="meta center">Empaque discreto · Pedido por WhatsApp</p></div>
-</aside>
-<p class="sr" aria-live="polite" data-live></p>
-<a class="wa" href="${waHref(p.wa || msgGeneral)}" target="_blank" rel="noopener" aria-label="Escribir por WhatsApp"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3.5a8.5 8.5 0 0 0-7.3 12.8L3.5 20.5l4.3-1.1A8.5 8.5 0 1 0 12 3.5z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg><span>Asesoría</span></a>
+<a class="wa" href="${waHref(p.wa || msgGeneral)}" target="_blank" rel="noopener" aria-label="Escribir por WhatsApp"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M17.5 14.4c-.3-.1-1.8-.9-2-1s-.5-.1-.7.1-.8 1-.9 1.2-.3.2-.6.1a8.2 8.2 0 0 1-2.4-1.5 9 9 0 0 1-1.7-2.1c-.2-.3 0-.5.1-.6l.4-.5.3-.5v-.5l-.9-2.2c-.2-.6-.5-.5-.7-.5h-.6a1.1 1.1 0 0 0-.8.4 3.4 3.4 0 0 0-1 2.5 5.9 5.9 0 0 0 1.2 3.1 13.4 13.4 0 0 0 5.2 4.6c.7.3 1.3.5 1.7.6a4.2 4.2 0 0 0 1.9.1 3.1 3.1 0 0 0 2-1.4 2.5 2.5 0 0 0 .2-1.4c-.1-.2-.3-.2-.6-.4zM12 21.8a9.9 9.9 0 0 1-5-1.4l-.4-.2-3.7 1 1-3.6-.2-.4A9.8 9.8 0 1 1 12 21.8zM20.5 3.5A11.8 11.8 0 0 0 1.9 17.7L.2 24l6.4-1.7a11.8 11.8 0 0 0 5.4 1.4h.1A11.8 11.8 0 0 0 20.5 3.5z" fill="currentColor"/></svg><span>Asesoría</span></a>
 <script src="${b}js/app.js" defer></script>
 </body>
 </html>`;
@@ -267,8 +275,13 @@ ${p.body(b)}
   const ORG = { '@type': 'Organization', name: 'ESSENZA by Diana Caliz', url: `${dominio}/` };
 
   // ------------------------------------------------ inicio
-  const destacados = (products.filter(p => p.destacado).length ? products.filter(p => p.destacado) : products).slice(0, 4);
-  const kits = products.filter(p => p.cat.slug === 'kits-y-rituales' && !destacados.includes(p)).slice(0, 4);
+  // El inicio no muestra productos +18 (siguen en la tienda y en su categoría)
+  const general = products.filter(p => !p.adultos);
+  // Sin `destacado` en el Excel: uno por categoría, primero los que tienen foto
+  const conFoto = [...general].sort((a, b) => !a.imagenes.length - !b.imagenes.length);
+  const porCat = conFoto.filter((p, i) => conFoto.findIndex(x => x.cat === p.cat) === i);
+  const destacados = (general.some(p => p.destacado) ? general.filter(p => p.destacado) : [...new Set([...porCat, ...conFoto])]).slice(0, 4);
+  const kits = general.filter(p => p.cat.slug === 'kits-y-rituales' && !destacados.includes(p)).slice(0, 4);
   const kitCat = cats.find(c => c.slug === 'kits-y-rituales');
   put('index.html', {
     title: 'ESSENZA by Diana Caliz | Piel, equilibrio e intimidad',
@@ -440,35 +453,25 @@ ${p.imagenes.length > 1 ? `<div class="thumbs">${p.imagenes.map((src, i) => `<bu
 <div><p class="price-lg">${priceHTML(p)} <small>COP</small></p><p class="stock${p.agotado ? ' out' : ''}">${dispText(p)}</p></div>
 ${p.porque ? `<div class="reco"><p class="eyebrow">Por qué lo recomendamos</p><p>${esc(p.porque)}</p></div>` : ''}
 ${p.variacion ? `<label class="field">${esc(p.variacion.label)}<select data-variant data-label="${esc(p.variacion.label)}">${p.variacion.options.map(o => `<option>${esc(o)}</option>`).join('')}</select></label>` : ''}
-<div class="buy">${p.agotado ? '' : `<div class="qty" data-stepper><button type="button" data-step="-1" aria-label="Quitar una unidad" disabled>−</button><input class="qty-input" type="number" min="1" max="20" value="1" data-qty inputmode="numeric" aria-label="Cantidad"><button type="button" data-step="1" aria-label="Agregar una unidad">+</button></div>`}${addBtn(p, b, 'btn grow')}</div>
-<a class="btn btn-outline" href="${waHref(waMsg)}" target="_blank" rel="noopener">Consultar por WhatsApp</a>
+<div class="buy">${p.agotado ? '' : `<div class="qty" data-stepper><button type="button" data-step="-1" aria-label="Quitar una unidad" disabled>−</button><input class="qty-input" type="number" min="1" max="20" value="1" data-qty inputmode="numeric" aria-label="Cantidad"><button type="button" data-step="1" aria-label="Agregar una unidad">+</button></div>`}${orderBtn(p, b, 'btn grow')}</div>
+${p.agotado
+  ? `<a class="btn btn-outline" href="${waHref(`Hola Diana, quiero saber cuándo vuelve ${p.nombre} · ${p.marca}: ${url}`)}" target="_blank" rel="noopener">Avísame cuando vuelva</a>`
+  : `<p class="buy-note">Diana te confirma por WhatsApp disponibilidad, envío y forma de pago. ¿Dudas antes de pedir? <a class="link" href="${waHref(waMsg)}" target="_blank" rel="noopener">Pregúntale aquí</a>.</p>`}
 ${p.adultos ? `<p class="notice"><strong>+18</strong> ${esc(cfg.aviso_adultos || 'Producto para uso exclusivo de personas mayores de 18 años.')}</p>` : ''}
 <ul class="trust"><li>Empaque 100% discreto</li><li>Asesoría personalizada y confidencial</li><li>Pedido y pago coordinados por WhatsApp</li></ul>
 </div></section>
+${p.agotado ? '' : `<div class="buy-bar" data-buy-bar hidden><p class="buy-bar-price">${priceHTML(p)}</p>${orderBtn(p, b, 'btn grow')}</div>`}
 <section class="details">${acc.map(([t, c], i) => `<details${i < 2 ? ' open' : ''}><summary>${t}</summary><div class="content">${c}</div></details>`).join('')}</section>
 ${rel.length ? `<section class="related"><h2 class="h2">También te puede interesar</h2><div class="grid-products four" data-stagger>${rel.map(x => card(b, x)).join('')}</div></section>` : ''}`;
       },
     });
   }
 
-  // ------------------------------------------------ carrito
+  // ------------------------------------------------ carrito (retirado: los pedidos van directo a WhatsApp)
   put('carrito/index.html', {
-    title: 'Tu pedido · ESSENZA by Diana Caliz', desc: 'Revisa tu pedido y envíalo por WhatsApp.', noindex: true,
-    wa: 'Hola Diana, necesito ayuda para completar mi pedido.',
-    body: b => `<section class="page-head">${crumbs(b, [['Tu pedido']])}<h1 class="h1">Tu pedido</h1><p class="muted">Revisa tus productos y envía el pedido por WhatsApp. Allí confirmamos disponibilidad, costo de envío y forma de pago.</p></section>
-<div class="inner pad-x pad-b cart-page" data-cart-page>
-<div class="panel"><h2 class="h3">Productos</h2><div data-cart-items></div></div>
-<form class="panel" data-order-form novalidate>
-<h2 class="h3">Datos para el envío</h2>
-<label class="field">Nombre<input name="nombre" autocomplete="name" required></label>
-<label class="field">Ciudad de envío<input name="ciudad" autocomplete="address-level2" required></label>
-<label class="field">Notas (opcional)<textarea name="notas" rows="3" placeholder="Barrio, horario de entrega, preguntas…"></textarea></label>
-<div class="total"><span>Total productos</span><strong data-cart-total>$0</strong></div>
-<p class="meta">El costo de envío se confirma por WhatsApp según tu ciudad.</p>
-<p class="error" data-error role="alert" hidden></p>
-<button class="btn btn-block" type="submit">Enviar pedido por WhatsApp</button>
-<ul class="trust"><li>Empaque 100% discreto, sin referencias al contenido</li><li>Tus datos solo se usan para coordinar tu pedido</li></ul>
-</form></div>`,
+    title: 'Pedidos por WhatsApp · ESSENZA by Diana Caliz', desc: 'Pide cada producto directamente por WhatsApp desde su ficha.', noindex: true,
+    body: b => `<section class="page-head">${crumbs(b, [['Pedidos']])}<h1 class="h1">Ahora pides directo por WhatsApp</h1><p class="muted">Ya no necesitas carrito: en cada producto toca «Pedir por WhatsApp» y Diana te confirma disponibilidad, envío y forma de pago. Si quieres varios productos, cuéntaselo en la misma conversación.</p>
+<div class="actions"><a class="btn" href="${b}tienda/">Ver la tienda</a><a class="btn btn-outline" href="${waHref('Hola Diana, quiero hacer un pedido.')}" target="_blank" rel="noopener">Escribir a Diana</a></div></section>`,
   });
 
   // ------------------------------------------------ asesoría
@@ -589,7 +592,7 @@ ${ps.length ? `<section class="related"><h2 class="h2">Productos relacionados</h
 
   legal('privacidad', 'Privacidad y tratamiento de datos', 'Política de tratamiento de datos personales de ESSENZA (Ley 1581 de 2012): qué datos usamos, para qué, con quién se comparten y cómo ejercer tus derechos.', [
     ['Responsable', conDatos(RESPONSABLE, responsable)],
-    ['Qué datos usamos', '<p>Este sitio no tiene cuentas de usuario y no guarda formularios. Tu carrito se guarda solo en tu propio navegador. Los datos personales que tratamos son los que tú nos das por WhatsApp o por correo para atender tu consulta o tu pedido: nombre, teléfono, ciudad y dirección de entrega, y el contenido del pedido o de la conversación.</p>'],
+    ['Qué datos usamos', '<p>Este sitio no tiene cuentas de usuario y no guarda formularios. Los datos personales que tratamos son los que tú nos das por WhatsApp o por correo para atender tu consulta o tu pedido: nombre, teléfono, ciudad y dirección de entrega, y el contenido del pedido o de la conversación.</p>'],
     ['Datos sensibles', '<p>La información sobre productos de bienestar íntimo o de salud puede revelar datos que la ley considera <strong>sensibles</strong> (por ejemplo, sobre tu vida sexual o tu salud). No estás obligada u obligado a darnos datos sensibles: los usamos solo si tú los compartes para pedir asesoría o hacer un pedido, con la reserva que exige la ley, y nunca los usamos con fines publicitarios.</p>'],
     ['Para qué los usamos', '<ul><li>Responder tus consultas y darte asesoría.</li><li>Coordinar tu pedido, el pago, el envío y las garantías.</li><li>Cumplir obligaciones legales, contables y tributarias.</li><li>Solo si nos autorizas aparte, enviarte novedades u ofertas; puedes pedir que dejemos de hacerlo en cualquier momento.</li></ul>'],
     ['Quién más interviene', '<ul><li><strong>WhatsApp (Meta Platforms)</strong>, por donde conversamos contigo.</li><li><strong>La transportadora</strong>, que recibe solo los datos necesarios para entregar tu pedido.</li><li><strong>Google Analytics (Google LLC, Estados Unidos)</strong>, que mide de forma agregada cómo se usa el sitio (páginas vistas, tipo de dispositivo, ciudad aproximada) mediante cookies. No le enviamos tu nombre, tu teléfono ni los datos de tu pedido. Puedes bloquear o borrar las cookies en la configuración de tu navegador.</li></ul><p>No vendemos ni alquilamos tus datos personales.</p>'],
@@ -602,8 +605,8 @@ ${ps.length ? `<section class="related"><h2 class="h2">Productos relacionados</h
 
   legal('terminos', 'Términos y condiciones', 'Términos y condiciones de uso del sitio y de compra en ESSENZA: cómo se confirma un pedido, precios en COP, productos para adultos y ley aplicable.', [
     ['Quiénes somos', conDatos(RESPONSABLE, responsable)],
-    ['Uso del sitio', '<p>Este sitio es un catálogo: te permite conocer los productos, armar un carrito y enviarnos tu pedido por WhatsApp. Al usarlo aceptas estos términos. Las fotos son de referencia; la presentación del producto puede variar según el lote del fabricante.</p>'],
-    ['Cómo se confirma un pedido', '<p>Enviar el carrito por WhatsApp no es todavía una compra: es una solicitud. El pedido queda confirmado cuando te confirmamos por WhatsApp la disponibilidad, el valor total con envío y la forma de pago, y tú realizas el pago.</p>'],
+    ['Uso del sitio', '<p>Este sitio es un catálogo: te permite conocer los productos y enviarnos tu pedido por WhatsApp. Al usarlo aceptas estos términos. Las fotos son de referencia; la presentación del producto puede variar según el lote del fabricante.</p>'],
+    ['Cómo se confirma un pedido', '<p>Enviar tu pedido por WhatsApp no es todavía una compra: es una solicitud. El pedido queda confirmado cuando te confirmamos por WhatsApp la disponibilidad, el valor total con envío y la forma de pago, y tú realizas el pago.</p>'],
     ['Precios', 'Los precios están en pesos colombianos (COP). Pueden cambiar sin previo aviso, pero respetamos el precio que te confirmamos por WhatsApp para tu pedido. El costo del envío se informa aparte antes de confirmar.'],
     ['Productos para adultos', 'Los productos de bienestar íntimo son para uso exclusivo de personas mayores de 18 años. Al pedirlos confirmas que eres mayor de edad.'],
     ['Información de producto', 'La información publicada es orientativa, proviene del fabricante o del empaque y no reemplaza la consulta con un profesional de la salud. Los suplementos no son medicamentos. Lee siempre las indicaciones y precauciones del empaque.'],
@@ -611,7 +614,7 @@ ${ps.length ? `<section class="related"><h2 class="h2">Productos relacionados</h
     ['Ley aplicable', '<p>Estos términos se rigen por las leyes de Colombia, en especial el Estatuto del Consumidor (Ley 1480 de 2011). Si tienes una queja, escríbenos primero para resolverla; también puedes acudir a la Superintendencia de Industria y Comercio.</p>'],
   ]);
   const FAQ = [
-    ['¿Cómo hago un pedido?', 'Agrega los productos al carrito y envía tu pedido por WhatsApp. Allí confirmamos disponibilidad, costo de envío y forma de pago.'],
+    ['¿Cómo hago un pedido?', 'En la ficha de cada producto elige la cantidad y toca «Pedir por WhatsApp». Si quieres varios productos, agrégalos en la misma conversación. Allí confirmamos disponibilidad, costo de envío y forma de pago.'],
     ['¿Cómo llega mi pedido?', 'En empaque 100% discreto, sin logotipos ni referencias al contenido.'],
     ['¿Hacen envíos a toda Colombia?', 'Enviamos a Colombia. Los tiempos y costos dependen de tu ciudad y se confirman por WhatsApp.'],
     ['¿Qué medios de pago aceptan?', 'Los medios de pago se coordinan por WhatsApp al confirmar tu pedido.'],
@@ -648,7 +651,7 @@ function llmsTxt({ cfg, cats, brands, products, blog, urlOf, noindex }) {
     '> Tienda en línea colombiana de cuidado de la piel, equilibrio interno y bienestar íntimo, con una selección corta de productos y asesoría personalizada de Diana Caliz. Los pedidos, el pago y el envío se coordinan por WhatsApp. Envíos a Colombia en empaque 100 % discreto.',
     '',
     '- Idioma: español (Colombia). Precios en pesos colombianos (COP).',
-    '- Cómo comprar: agregar productos al carrito del sitio y enviar el pedido por WhatsApp; allí se confirman disponibilidad, costo de envío y forma de pago.',
+    '- Cómo comprar: tocar «Pedir por WhatsApp» en la ficha de cada producto; allí se confirman disponibilidad, costo de envío y forma de pago.',
     '- Los productos de bienestar íntimo son solo para personas mayores de 18 años y no se listan aquí; se pueden consultar en la categoría Bienestar íntimo del sitio.',
     '- La información es orientativa, no hace promesas médicas y no reemplaza la consulta con un profesional de la salud.',
     ...(has(cfg.email) ? [`- Correo: ${cfg.email}`] : []),
